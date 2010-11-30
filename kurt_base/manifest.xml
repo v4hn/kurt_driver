@@ -1,0 +1,18 @@
+<package>
+  <description brief="kurt_base">
+
+     kurt_base
+
+  </description>
+  <author>Jochen Sprickerhof</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/kurt_base</url>
+  <depend package="roscpp"/>
+  <depend package="geometry_msgs"/>
+  <depend package="nav_msgs"/>
+  <depend package="tf"/>
+
+</package>
+
+

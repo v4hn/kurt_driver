@@ -1,0 +1,15 @@
+<stack>
+  <description brief="kurt_driver">kurt_driver</description>
+  <author>Maintained by Jochen Sprickerhof</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/kurt_driver</url>
+  <depend stack="common" /> <!-- xacro -->
+  <depend stack="common_msgs" /> <!-- nav_msgs, sensor_msgs, geometry_msgs -->
+  <depend stack="geometry" /> <!-- tf -->
+  <depend stack="joystick_drivers" /> <!-- joy -->
+  <depend stack="laser_pipeline" /> <!-- laser_assembler -->
+  <depend stack="robot_model" /> <!-- urdf -->
+  <depend stack="ros" /> <!-- roscpp -->
+
+</stack>
