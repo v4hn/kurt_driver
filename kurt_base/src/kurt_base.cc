@@ -6,6 +6,7 @@
 #include <nav_msgs/Odometry.h>
 //#include <sensor_msgs/Range.h>
 #include <tf/transform_broadcaster.h>
+#include <sensor_msgs/JointState.h>
 
 #include <sys/time.h>
 #include <signal.h>
@@ -65,6 +66,7 @@ double turning_adaptation;
 int IRdist[10], IRnr;
 
 bool use_gyro;
+bool use_rotunit;
 
 bool read_speed_to_pwm_leerlauf_tabelle(string &filename, int *nr, double **v_pwm_l, double **v_pwm_r);
 void make_pwm_v_tab(int nr, double *v_pwm_l, double *v_pwm_r, int nr_v, int **pwm_v_l, int **pwm_v_r, double *v_max);
@@ -75,6 +77,7 @@ void gyro();
 bool infrared_sonar();
 void get_tilt();
 void velCallback(const geometry_msgs::Twist::ConstPtr& msg);
+void rotunitCallback(const geometry_msgs::Twist::ConstPtr& msg);
 void set_values();
 void k_can_close(void);
 void set_wheel_speed2(double _v_l_soll, double _v_r_soll,
@@ -129,6 +132,7 @@ void quit(int sig)
 int main(int argc, char** argv)
 {
   double ki, kp;
+  int speed;
   string speedPwmLeerlaufTable;
   ros::init(argc, argv, "kurt_base");
   ros::NodeHandle n;
@@ -145,6 +149,17 @@ int main(int argc, char** argv)
   if(!nh_ns.getParam("speedtable", speedPwmLeerlaufTable)) {
     ROS_ERROR("speedtable not set, aborting");
     return 1;
+  }
+  nh_ns.param("use_rotunit", use_rotunit, false);
+  sensor_msgs::JointState joint_state;
+  ros::Publisher joint_pub;
+  if(use_rotunit) {
+    nh_ns.param("InitialSpeed", speed, 42);
+    ros::Subscriber rot_vel_sub = n.subscribe("rot_vel", 10, rotunitCallback);
+    joint_pub = n.advertise<sensor_msgs::JointState>("rotunit_state", 1);
+    joint_state.name.resize(1);
+    joint_state.position.resize(1);
+    joint_state.name[0] ="laser_rot_joint";
   }
 
   ros::Rate loop_rate(100);
@@ -197,11 +212,16 @@ int main(int argc, char** argv)
     }
   }
 
+  if(use_rotunit) {
+    can_rotunit_send(speed);
+  }
+
   signal(SIGINT, quit);
   ROS_INFO("started");
 
   ros::Time current_time;
   double x, y, th;
+  int rot = 0;
 
   nav_msgs::Odometry odom;
   odom.header.frame_id = "odom";
@@ -262,6 +282,16 @@ int main(int argc, char** argv)
       ultrasound_pub.publish(ultrasound);*/
 
     }
+    if(use_rotunit) {
+      can_getrotunit(&rot);
+      joint_state.header.stamp = ros::Time::now();
+      joint_state.position[0] = rot * 2 * M_PI / 10240;
+
+      joint_pub.publish(joint_state);
+
+      ros::spinOnce();
+      loop_rate.sleep();
+    }
     ros::spinOnce();
     //set_values();
     loop_rate.sleep();
@@ -278,6 +308,11 @@ void velCallback(const geometry_msgs::Twist::ConstPtr& msg)
     AntiWindup = 0.0;
   }
   set_values();
+}
+
+void rotunitCallback(const geometry_msgs::Twist::ConstPtr& msg)
+{
+  can_rotunit_send(msg->angular.x);
 }
 
 void set_values()
@@ -530,6 +565,9 @@ void k_can_close(void)
 {
   char *retext; // return text of CAN interface functions
   // be sure the robot ist stopped before closing the connection
+  if(use_rotunit) {
+    can_rotunit_send(0);
+  }
   do {
     kurt2_ctrl.control_mode = 0;
     kurt2_ctrl.pwm_left = 1023;
