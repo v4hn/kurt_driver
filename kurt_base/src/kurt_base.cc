@@ -156,7 +156,7 @@ int main(int argc, char** argv)
   if(use_rotunit) {
     nh_ns.param("InitialSpeed", speed, 42);
     ros::Subscriber rot_vel_sub = n.subscribe("rot_vel", 10, rotunitCallback);
-    joint_pub = n.advertise<sensor_msgs::JointState>("rotunit_state", 1);
+    joint_pub = n.advertise<sensor_msgs::JointState>("joint_states", 1);
     joint_state.name.resize(1);
     joint_state.position.resize(1);
     joint_state.name[0] ="laser_rot_joint";
@@ -188,11 +188,6 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  can_gyro_reset();
-  can_gyro_calibrate();
-  // adjust gyro, i.e. execute loop for a while
-  // without executing any behavior
-
   if(!k_read_wheel_encoder(&wheel_a, &wheel_b)) {
     ROS_ERROR("error starting base (power on?)");
     return 1;
@@ -201,6 +196,11 @@ int main(int argc, char** argv)
   //TODO move to gyro()
   if(use_gyro) {
     ROS_INFO("Initializing gyroscope");
+
+    can_gyro_reset();
+    can_gyro_calibrate();
+    // adjust gyro, i.e. execute loop for a while
+    // without executing any behavior
     for (int i = 0; i < 100; i++) { //TODO change 100 to 500?
       while (!odometry()) {
         usleep(100);
@@ -278,8 +278,8 @@ int main(int argc, char** argv)
 
       odom_pub.publish(odom);
 
-      /*ultrasound.range = (1.0*IRdist[5])/100.0;
-      ultrasound_pub.publish(ultrasound);*/
+      //ultrasound.range = (1.0*IRdist[5])/100.0;
+      //ultrasound_pub.publish(ultrasound);
 
     }
     if(use_rotunit) {
@@ -288,9 +288,6 @@ int main(int argc, char** argv)
       joint_state.position[0] = rot * 2 * M_PI / 10240;
 
       joint_pub.publish(joint_state);
-
-      ros::spinOnce();
-      loop_rate.sleep();
     }
     ros::spinOnce();
     //set_values();

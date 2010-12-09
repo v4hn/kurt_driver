@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 
   ros::Rate loop_rate(100);
   ros::Subscriber cmd_vel_sub = n.subscribe("cmd_vel", 10, velCallback);
-  ros::Publisher joint_pub = n.advertise<sensor_msgs::JointState>("rotunit_state", 1);
+  ros::Publisher joint_pub = n.advertise<sensor_msgs::JointState>("joint_states", 1);
   sensor_msgs::JointState joint_state;
   joint_state.name.resize(1);
   joint_state.position.resize(1);
