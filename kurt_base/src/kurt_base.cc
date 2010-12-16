@@ -20,52 +20,42 @@ using std::min;
 using std::max;
 
 const double EPSILON = 0.000001;
-const int MAX_V_LIST = 200;
-const int nr_v = 1000;
 
 // speed (controller)
-double v_l_soll = 0.0, v_r_soll = 0.0;
 double v_l_ist = 0.0, v_r_ist = 0.0;
+
 // poses from sensors
 double theta_from_encoder = 0.0, x_from_encoder = 0.0, z_from_encoder = 0.0;
 
-// robot states
-double AntiWindup = 1.0;
-
-// data fro gyro and kalman filter
-double theta_alt_from_encoder = 0.0, theta_alt_from_gyro = 0.0;
-double theta_neu_from_gyro, sigma_from_gyro; //sigma is not used because its undocumented..
+// data from gyro
 double theta_from_gyro = 0.0, x_from_gyro = 0.0, z_from_gyro = 0.0;
-double gyro_fehler = 0.0;
-
-// various
-bool gyro_offset_read = false;
 
 // tilt information
 double pitch = 0.0, roll = 0.0;
 
 long double Time_Diff = 0.0;
 
-double local_dx = 0.0;
-double local_dz = 0.0;
-
 MOTOR_CTRL kurt2_ctrl;
+
+//PWM data
+const int MAX_V_LIST = 200;
+const int nr_v = 1000;
 double vmax;
 int *pwm_v_l, *pwm_v_r;
 double kp_l, kp_r; // schnell aenderung folgen
 double ki_l, ki_r; // integrierer relative langsam
 int leerlauf_adapt = 0;
 double feedforward_turn; // in v = m/s
+double turning_adaptation;
+
 bool use_microcontroller;
+bool use_rotunit;
+
 int ticks_per_turn_of_wheel;
 double wheel_perimeter;
 double axis_length;
-double turning_adaptation;
 
 int IRdist[10], IRnr;
-
-bool use_gyro;
-bool use_rotunit;
 
 bool read_speed_to_pwm_leerlauf_tabelle(string &filename, int *nr, double **v_pwm_l, double **v_pwm_r);
 void make_pwm_v_tab(int nr, double *v_pwm_l, double *v_pwm_r, int nr_v, int **pwm_v_l, int **pwm_v_r, double *v_max);
@@ -77,7 +67,6 @@ bool infrared_sonar();
 void get_tilt();
 void velCallback(const geometry_msgs::Twist::ConstPtr& msg);
 void rotunitCallback(const geometry_msgs::Twist::ConstPtr& msg);
-void set_values();
 void k_can_close(void);
 void set_wheel_speed2(double _v_l_soll, double _v_r_soll,
     double _v_l_ist, double _v_r_ist,
@@ -85,7 +74,7 @@ void set_wheel_speed2(double _v_l_soll, double _v_r_soll,
 void set_wheel_speed2_mc(double _v_l_soll, double _v_r_soll,
     double _v_l_ist, double _v_r_ist,
     double _omega, long double Time, double _AntiWindup);
-bool local_odometry(double &v_encoder, double &v_encoder_left, double &v_encoder_right, double &dx, double &dz, double &dtheta_y, double &wheel_L, double &wheel_R);
+bool local_odometry(double &v_encoder, double &v_encoder_left, double &v_encoder_right, double &dx, double &dz, double &dtheta_y, double &wheel_L, double &wheel_R, double &local_dx, double &local_dz);
 
 unsigned long GetCurrentTimeInMilliSec(void)
 {
@@ -134,6 +123,7 @@ int main(int argc, char** argv)
 {
   double ki, kp;
   int speed;
+  bool use_gyro;
   string speedPwmLeerlaufTable;
   ros::init(argc, argv, "kurt_base");
   ros::NodeHandle n;
@@ -187,12 +177,12 @@ int main(int argc, char** argv)
   tf::TransformBroadcaster odom_broadcaster;
 
 
-  long wheel_a = 0, wheel_b = 0;
   if (k_can_init() > 0) {
     ROS_ERROR("can not init can");
     return 1;
   }
 
+  long wheel_a = 0, wheel_b = 0;
   if(!k_read_wheel_encoder(&wheel_a, &wheel_b)) {
     ROS_ERROR("error starting base (power on?)");
     return 1;
@@ -295,7 +285,6 @@ int main(int argc, char** argv)
       joint_pub.publish(joint_state);
     }
     ros::spinOnce();
-    //set_values();
     loop_rate.sleep();
   }
 
@@ -304,21 +293,13 @@ int main(int argc, char** argv)
 
 void velCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
+  double v_l_soll = 0.0, v_r_soll = 0.0;
+  double AntiWindup = 1.0;
   v_l_soll = ((msg->linear.x - (axis_length / 100.0) * msg->angular.x) /*/ wheelRadius*/);
   v_r_soll = ((msg->linear.x + (axis_length / 100.0) * msg->angular.x)/*/wheelRadius*/);
   if(msg->linear.x == 0 && msg->angular.x == 0) {
     AntiWindup = 0.0;
   }
-  set_values();
-}
-
-void rotunitCallback(const geometry_msgs::Twist::ConstPtr& msg)
-{
-  can_rotunit_send(msg->angular.x);
-}
-
-void set_values()
-{
   /*
      v_l_soll = 0.1;
      cout << v_l_soll << " " << v_r_soll << endl;
@@ -338,6 +319,11 @@ void set_values()
   }
 }
 
+void rotunitCallback(const geometry_msgs::Twist::ConstPtr& msg)
+{
+  can_rotunit_send(msg->angular.x);
+}
+
 void get_tilt()
 {
   double tilt_lr, tilt_fb;
@@ -352,6 +338,11 @@ void get_tilt()
 
 void gyro()
 {
+  static bool gyro_offset_read = false;
+  static double theta_alt_from_encoder = 0.0, theta_alt_from_gyro = 0.0;
+  static double theta_neu_from_gyro, sigma_from_gyro; //sigma is not used because its undocumented..
+  static double gyro_fehler = 0.0;
+
   // beim allerersten Durchlauf Initialwerte einlesen
   if(!gyro_offset_read) {
     can_gyro_mc1(&theta_alt_from_gyro, &sigma_from_gyro, NULL);
@@ -409,7 +400,10 @@ bool odometry()
   // covered distance of wheels (left/right) -- resetted with each encoder update
   double wheel_L = 0.0, wheel_R = 0.0;
 
-  if (!local_odometry(v_encoder, v_encoder_left, v_encoder_right, dx, dz, dtheta_y, wheel_L, wheel_R)) {
+  double local_dx = 0.0;
+  double local_dz = 0.0;
+
+  if (!local_odometry(v_encoder, v_encoder_left, v_encoder_right, dx, dz, dtheta_y, wheel_L, wheel_R, local_dx, local_dz)) {
     return false;
   }
 
@@ -434,7 +428,7 @@ bool odometry()
   return true;
 }
 
-bool local_odometry(double &v_encoder, double &v_encoder_left, double &v_encoder_right, double &dx, double &dz, double &dtheta_y, double &wheel_L, double &wheel_R)
+bool local_odometry(double &v_encoder, double &v_encoder_left, double &v_encoder_right, double &dx, double &dz, double &dtheta_y, double &wheel_L, double &wheel_R, double &local_dx, double &local_dz)
 {
   long wheel_a = 0, wheel_b = 0;
   double angular_velocity = 0.0;
