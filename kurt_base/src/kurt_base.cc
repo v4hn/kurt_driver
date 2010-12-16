@@ -56,7 +56,6 @@ double kp_l, kp_r; // schnell aenderung folgen
 double ki_l, ki_r; // integrierer relative langsam
 int leerlauf_adapt = 0;
 double feedforward_turn; // in v = m/s
-double step_max;
 bool use_microcontroller;
 int ticks_per_turn_of_wheel;
 double wheel_perimeter;
@@ -124,8 +123,10 @@ void quit(int sig)
 {
   ROS_INFO("close");
   k_can_close();
-  free(pwm_v_l);
-  free(pwm_v_r);
+  if(!use_microcontroller) {
+    free(pwm_v_l);
+    free(pwm_v_r);
+  }
   exit(0);
 }
 
@@ -137,20 +138,37 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "kurt_base");
   ros::NodeHandle n;
   ros::NodeHandle nh_ns("~");
+  //Odometry parameter
   nh_ns.param("wheel_perimeter", wheel_perimeter, 37.9);
   nh_ns.param("axis_length", axis_length, 28.0);
   nh_ns.param("turning_adaptation", turning_adaptation, 0.69);
-  nh_ns.param("feedforward_turn", feedforward_turn, 0.35);
-  nh_ns.param("ki", ki, 3.4);
-  nh_ns.param("kp", kp, 0.4);
   nh_ns.param("ticks_per_turn_of_wheel", ticks_per_turn_of_wheel, 21950);
-  nh_ns.param("use_microcontroller", use_microcontroller, false);
+
   nh_ns.param("use_gyro", use_gyro, false);
-  if(!nh_ns.getParam("speedtable", speedPwmLeerlaufTable)) {
-    ROS_ERROR("speedtable not set, aborting");
-    return 1;
-  }
   nh_ns.param("use_rotunit", use_rotunit, false);
+
+  use_microcontroller = true;
+
+  //PID parameter (disables micro controller)
+  if(nh_ns.getParam("speedtable", speedPwmLeerlaufTable)) {
+    use_microcontroller = false;
+    nh_ns.param("feedforward_turn", feedforward_turn, 0.35);
+    nh_ns.param("ki", ki, 3.4);
+    nh_ns.param("kp", kp, 0.4);
+
+    ki_l = ki_r = ki;
+    kp_l = kp_r = kp;
+
+    int nr;
+    double *v_pwm_l, *v_pwm_r;
+    if(!read_speed_to_pwm_leerlauf_tabelle(speedPwmLeerlaufTable, &nr, &v_pwm_l, &v_pwm_r)) {
+      return 2;
+    }
+    make_pwm_v_tab(nr, v_pwm_l, v_pwm_r, nr_v, &pwm_v_l, &pwm_v_r, &vmax);
+    free(v_pwm_l);
+    free(v_pwm_r);
+  }
+
   sensor_msgs::JointState joint_state;
   ros::Publisher joint_pub;
   if(use_rotunit) {
@@ -168,19 +186,6 @@ int main(int argc, char** argv)
   //ros::Publisher ultrasound_pub = n.advertise<sensor_msgs::Range>("usound", 10);
   tf::TransformBroadcaster odom_broadcaster;
 
-  ki_l = ki_r = ki;
-  kp_l = kp_r = kp;
-
-  int nr;
-  double *v_pwm_l, *v_pwm_r;
-  if(!read_speed_to_pwm_leerlauf_tabelle(speedPwmLeerlaufTable, &nr, &v_pwm_l, &v_pwm_r)) {
-    return 2;
-  }
-  make_pwm_v_tab(nr, v_pwm_l, v_pwm_r, nr_v, &pwm_v_l, &pwm_v_r, &vmax);
-  free(v_pwm_l);
-  free(v_pwm_r);
-
-  step_max = vmax * 0.5;
 
   long wheel_a = 0, wheel_b = 0;
   if (k_can_init() > 0) {
@@ -854,6 +859,7 @@ void set_wheel_speed2(double _v_l_soll, double _v_r_soll,
 
   // reduzieren
 
+  double step_max = vmax * 0.5;
   /* kraft begrenzung damit die Kette nicht springt bzw
      der Motor ein wenig entlastet wird. bei vorgabe von max
      geschwindigkeit braucht es so 5 * 10 ms bevor die Maximale
