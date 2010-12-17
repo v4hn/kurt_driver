@@ -1,0 +1,11 @@
+<launch>
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/robots/kurt2_indoor.urdf.xacro'" />
+
+  <node pkg="robot_state_publisher" type="state_publisher" name="state_publisher" />
+
+  <include file="$(find kurt_base)/launch/kurt_indoor.launch" />
+
+  <include file="$(find kurt_teleop)/launch/cyborgevo.launch" />
+
+  <include file="$(find kurt_bringup)/launch/sick_lms200.launch" />
+</launch>

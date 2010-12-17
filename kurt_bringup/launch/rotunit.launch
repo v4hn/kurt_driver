@@ -1,0 +1,16 @@
+<launch>
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_base)/urdf/rotunit.urdf.xacro'" />
+
+  <node pkg="robot_state_publisher" type="state_publisher" name="state_publisher" />
+
+  <node pkg="kurt_base" type="rotunit_state_publisher" name="rotunit_state_publisher" />
+
+  <include file="$(find kurt_bringup)/launch/sick_lms200.launch" />
+
+  <node pkg="laser_assembler" type="laser_scan_assembler" name="laser_scan_assembler">
+    <param name="max_scans" value="1000" />
+    <param name="fixed_frame" value="/laser_rot_mount_link" />
+  </node>
+
+  <node pkg="rotunit_snapshotter" type="rotunit_snapshotter" name="rotunit_snapshotter" />
+</launch>

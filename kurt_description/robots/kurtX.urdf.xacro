@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <robot
   xmlns:xacro="http://ros.org/wiki/xacro"
-  name="kurt360">
+  name="kurtX">
+
+  <include filename="$(find kurt_description)/common.xacro" />
 
   <include filename="$(find kurt_base)/urdf/kurt_outdoor.urdf.xacro" />
 
@@ -17,6 +19,7 @@
   <joint name="laser_top_joint" type="fixed">
     <child link="laser_rot_mount_link" />
     <parent link="kurt360_top" />
+    <origin xyz="0 0 0" rpy="0 0 ${M_PI/2}" />
   </joint>
 
 </robot>

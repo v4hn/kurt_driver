@@ -1,4 +1,4 @@
 <launch>
     <!-- send rotunit urdf to param server -->
-    <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/parts/rotunit.urdf.xacro'" />
+    <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_base)/urdf/rotunit.urdf.xacro'" />
 </launch>

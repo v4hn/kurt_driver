@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="kurt_base" type="kurt_base" name="kurt_base" />
+</launch>

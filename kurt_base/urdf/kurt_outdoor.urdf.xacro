@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<robot
+  xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size=".43 .43 .23" />
+      </geometry>
+      <material name="red" >
+        <color rgba="1 0 0 1" />
+      </material>
+    </visual>
+  </link>
+</robot>

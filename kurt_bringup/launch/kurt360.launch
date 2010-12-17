@@ -1,0 +1,19 @@
+<launch>
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/robots/kurt360.urdf.xacro'" />
+
+  <node pkg="robot_state_publisher" type="state_publisher" name="state_publisher" />
+
+  <include file="$(find kurt_base)/launch/kurt_outdoor.launch" />
+  <param name="kurt_base/use_rotunit" value="true" />
+
+  <include file="$(find kurt_teleop)/launch/cyborgevo.launch" />
+
+  <include file="$(find kurt_bringup)/launch/sick_lms200.launch" />
+
+  <node pkg="laser_assembler" type="laser_scan_assembler" name="laser_scan_assembler">
+    <param name="max_scans" value="1000" />
+    <param name="fixed_frame" value="/odom" />
+  </node>
+
+  <node pkg="rotunit_snapshotter" type="rotunit_snapshotter" name="rotunit_snapshotter" />
+</launch>

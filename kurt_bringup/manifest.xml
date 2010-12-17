@@ -1,0 +1,22 @@
+<package>
+  <description brief="kurt_bringup">
+
+     kurt_bringup
+
+  </description>
+  <author>Jochen Sprickerhof</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/kurt_bringup</url>
+  <depend package="kurt_description"/>
+  <depend package="kurt_base"/>
+  <depend package="kurt_teleop"/>
+  <depend package="robot_state_publisher"/>
+
+  <depend package="sicktoolbox_wrapper"/>
+  <depend package="laser_assembler"/>
+  <depend package="rotunit_snapshotter"/>
+
+</package>
+
+

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot
+  xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <link name="kurt360_top">
+    <visual>
+      <geometry>
+        <box size=".36 .28 .08" />
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <material name="silver" >
+          <color rgba=".2 .2 .2 1" />
+      </material>
+    </visual>
+  </link>
+</robot>

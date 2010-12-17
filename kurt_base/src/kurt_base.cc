@@ -128,7 +128,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "kurt_base");
   ros::NodeHandle n;
   ros::NodeHandle nh_ns("~");
-  //Odometry parameter
+  //Odometry parameter (defaults for kurt2 indoor)
   nh_ns.param("wheel_perimeter", wheel_perimeter, 37.9);
   nh_ns.param("axis_length", axis_length, 28.0);
   nh_ns.param("turning_adaptation", turning_adaptation, 0.69);
