@@ -16,7 +16,7 @@
     </visual>
   </link>
 
-  <joint name="laser_rot_joint" type="fixed">
+  <joint name="laser_joint" type="fixed">
     <parent link="kurt2_top" />
     <child link="laser" />
     <origin xyz="0 0 0.22" rpy="0 0 0" />
