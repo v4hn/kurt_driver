@@ -32,7 +32,7 @@ void k_can_close(void)
 
 void velCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-  can_rotunit_send(msg->angular.x);
+  can_rotunit_send(msg->angular.z);
 }
 
 void quit(int sig)

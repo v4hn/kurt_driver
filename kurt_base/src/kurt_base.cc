@@ -295,9 +295,9 @@ void velCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
   double v_l_soll = 0.0, v_r_soll = 0.0;
   double AntiWindup = 1.0;
-  v_l_soll = ((msg->linear.x - (axis_length / 100.0) * msg->angular.x) /*/ wheelRadius*/);
-  v_r_soll = ((msg->linear.x + (axis_length / 100.0) * msg->angular.x)/*/wheelRadius*/);
-  if(msg->linear.x == 0 && msg->angular.x == 0) {
+  v_l_soll = ((msg->linear.x - (axis_length / 100.0) * msg->angular.z) /*/ wheelRadius*/);
+  v_r_soll = ((msg->linear.x + (axis_length / 100.0) * msg->angular.z)/*/wheelRadius*/);
+  if(msg->linear.x == 0 && msg->angular.z == 0) {
     AntiWindup = 0.0;
   }
   /*
@@ -321,7 +321,7 @@ void velCallback(const geometry_msgs::Twist::ConstPtr& msg)
 
 void rotunitCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-  can_rotunit_send(msg->angular.x);
+  can_rotunit_send(msg->angular.z);
 }
 
 void get_tilt()
