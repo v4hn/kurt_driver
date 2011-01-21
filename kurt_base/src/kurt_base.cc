@@ -4,9 +4,10 @@
 #include <ros/console.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
-//#include <sensor_msgs/Range.h>
 #include <tf/transform_broadcaster.h>
 #include <sensor_msgs/JointState.h>
+#include <sensor_msgs/Imu.h>
+//#include <sensor_msgs/Range.h>
 
 #include <sys/time.h>
 #include <signal.h>
@@ -19,21 +20,21 @@ using std::string;
 using std::min;
 using std::max;
 
-const double EPSILON = 0.000001;
+// speed from encoder in m/s
+double v_encoder_left = 0.0, v_encoder_right = 0.0, v_encoder = 0.0, v_encoder_angular = 0.0;
 
-// speed (controller)
-double v_l_ist = 0.0, v_r_ist = 0.0;
-
-// poses from sensors
+// poses from encoder in m
 double theta_from_encoder = 0.0, x_from_encoder = 0.0, z_from_encoder = 0.0;
 
-// data from gyro
-double theta_from_gyro = 0.0, x_from_gyro = 0.0, z_from_gyro = 0.0;
+// angle from gyro
+double theta_from_gyro = 0.0;
+
+bool use_gyrodometry;
+// pose from gyrodometry in m
+double theta_from_gyrodometry = 0.0, x_from_gyrodometry = 0.0, z_from_gyrodometry = 0.0;
 
 // tilt information
 double pitch = 0.0, roll = 0.0;
-
-long double Time_Diff = 0.0;
 
 MOTOR_CTRL kurt2_ctrl;
 
@@ -60,9 +61,9 @@ int IRdist[10], IRnr;
 bool read_speed_to_pwm_leerlauf_tabelle(string &filename, int *nr, double **v_pwm_l, double **v_pwm_r);
 void make_pwm_v_tab(int nr, double *v_pwm_l, double *v_pwm_r, int nr_v, int **pwm_v_l, int **pwm_v_r, double *v_max);
 int k_can_init(void);
-bool k_read_wheel_encoder (long *channel_1, long *channel_2);
+bool k_read_wheel_encoder (long *channel_1, long *channel_2, int *nr_msg);
 bool odometry();
-void gyro();
+void get_gyro();
 bool infrared_sonar();
 void get_tilt();
 void velCallback(const geometry_msgs::Twist::ConstPtr& msg);
@@ -74,7 +75,6 @@ void set_wheel_speed2(double _v_l_soll, double _v_r_soll,
 void set_wheel_speed2_mc(double _v_l_soll, double _v_r_soll,
     double _v_l_ist, double _v_r_ist,
     double _omega, long double Time, double _AntiWindup);
-bool local_odometry(double &v_encoder, double &v_encoder_left, double &v_encoder_right, double &dx, double &dz, double &dtheta_y, double &wheel_L, double &wheel_R, double &local_dx, double &local_dz);
 
 unsigned long GetCurrentTimeInMilliSec(void)
 {
@@ -122,8 +122,7 @@ void quit(int sig)
 int main(int argc, char** argv)
 {
   double ki, kp;
-  int speed;
-  bool use_gyro;
+  int rotunit_speed;
   string speedPwmLeerlaufTable;
   ros::init(argc, argv, "kurt_base");
   ros::NodeHandle n;
@@ -131,10 +130,13 @@ int main(int argc, char** argv)
   //Odometry parameter (defaults for kurt2 indoor)
   nh_ns.param("wheel_perimeter", wheel_perimeter, 37.9);
   nh_ns.param("axis_length", axis_length, 28.0);
+  // parameter still in cm, converting to meter
+  wheel_perimeter *= 0.01;
+  axis_length *= 0.01;
   nh_ns.param("turning_adaptation", turning_adaptation, 0.69);
   nh_ns.param("ticks_per_turn_of_wheel", ticks_per_turn_of_wheel, 21950);
 
-  nh_ns.param("use_gyro", use_gyro, false);
+  nh_ns.param("use_gyrodometry", use_gyrodometry, false);
   nh_ns.param("use_rotunit", use_rotunit, false);
 
   use_microcontroller = true;
@@ -159,10 +161,15 @@ int main(int argc, char** argv)
     free(v_pwm_r);
   }
 
+  std::string prefix_param;
+  n.searchParam("tf_prefix", prefix_param);
+  std::string tf_prefix;
+  n.getParam(prefix_param, tf_prefix);
+
   sensor_msgs::JointState joint_state;
   ros::Publisher joint_pub;
   if(use_rotunit) {
-    nh_ns.param("InitialSpeed", speed, 42);
+    nh_ns.param("InitialSpeed", rotunit_speed, 42);
     ros::Subscriber rot_vel_sub = n.subscribe("rot_vel", 10, rotunitCallback);
     joint_pub = n.advertise<sensor_msgs::JointState>("joint_states", 1);
     joint_state.name.resize(1);
@@ -172,43 +179,21 @@ int main(int argc, char** argv)
 
   ros::Rate loop_rate(100);
   ros::Subscriber cmd_vel_sub = n.subscribe("cmd_vel", 10, velCallback);
-  ros::Publisher odom_pub = n.advertise<nav_msgs::Odometry>("odom", 10);
-  //ros::Publisher ultrasound_pub = n.advertise<sensor_msgs::Range>("usound", 10);
-  tf::TransformBroadcaster odom_broadcaster;
-
 
   if (k_can_init() > 0) {
     ROS_ERROR("can not init can");
     return 1;
   }
 
-  long wheel_a = 0, wheel_b = 0;
-  if(!k_read_wheel_encoder(&wheel_a, &wheel_b)) {
+  long wheel_a, wheel_b;
+  int nr_msg;
+  if(!k_read_wheel_encoder(&wheel_a, &wheel_b, &nr_msg)) {
     ROS_ERROR("error starting base (power on?)");
     return 1;
   }
 
-  //TODO move to gyro()
-  if(use_gyro) {
-    ROS_INFO("Initializing gyroscope");
-
-    can_gyro_reset();
-    can_gyro_calibrate();
-    // adjust gyro, i.e. execute loop for a while
-    // without executing any behavior
-    for (int i = 0; i < 100; i++) { //TODO change 100 to 500?
-      while (!odometry()) {
-        usleep(100);
-      };
-      gyro();
-      //infrared_sonar(); //TODO not needed?
-      //get_tilt(); //TODO not needed?
-      sleep(10);
-    }
-  }
-
   if(use_rotunit) {
-    can_rotunit_send(speed);
+    can_rotunit_send(rotunit_speed);
   }
 
   signal(SIGINT, quit);
@@ -217,66 +202,79 @@ int main(int argc, char** argv)
   ros::Time current_time;
   double x, y, th;
   int rot = 0;
+  geometry_msgs::Quaternion odom_quat;
+
+  ros::Publisher odom_pub = n.advertise<nav_msgs::Odometry>("odom", 10);
+  tf::TransformBroadcaster odom_broadcaster;
+  //ros::Publisher ultrasound_pub = n.advertise<sensor_msgs::Range>("usound", 10);
 
   nav_msgs::Odometry odom;
   odom.header.frame_id = "odom";
   odom.child_frame_id = "base_link";
 
   geometry_msgs::TransformStamped odom_trans;
-  odom_trans.header.frame_id = "odom";
-  odom_trans.child_frame_id = "base_link";
+  odom_trans.header.frame_id = tf::resolve(tf_prefix, "odom");
+  odom_trans.child_frame_id = tf::resolve(tf_prefix, "base_link");
 
+  ros::Publisher imu_pub = n.advertise<sensor_msgs::Imu>("imu", 10);
+  sensor_msgs::Imu imu;
+  imu.header.frame_id = "base_link";
+  imu.angular_velocity_covariance[0] = -1; // no data avilable, see Imu.msg
+  imu.linear_acceleration_covariance[0] = -1;
+
+  //TODO add sensor message
   /*sensor_msgs::Range ultrasound;
   ultrasound.radiation_type = sensor_msgs::Range::ULTRASOUND;
-  //TODO add sensor message
   ultrasound.field_of_view = 0;
   ultrasound.min_range = 0;
   ultrasound.max_range = 30;*/
 
   while (ros::ok()) {
-    if (odometry()) {
-      current_time = ros::Time::now();
-      gyro();
-      infrared_sonar();
-      //get_tilt(); //TODO not needed?
+    odometry();
+    current_time = ros::Time::now();
+    get_gyro();
+    //TODO
+    //infrared_sonar();
+    //get_tilt();
 
-      if(!use_gyro) {
-        x = z_from_encoder/100.0;
-        y = -x_from_encoder/100.0;
-        th = -theta_from_encoder;
-      } else {
-        x = z_from_gyro/100.0;
-        y = -x_from_gyro/100.0;
-        th = -theta_from_gyro;
-      }
-
-      geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(th);
-
-      odom_trans.header.stamp = current_time;
-      odom_trans.transform.translation.x = x;
-      odom_trans.transform.translation.y = y;
-      odom_trans.transform.translation.z = 0.0;
-      odom_trans.transform.rotation = odom_quat;
-
-      odom_broadcaster.sendTransform(odom_trans);
-
-      odom.header.stamp = current_time;
-      odom.pose.pose.position.x = x;
-      odom.pose.pose.position.y = y;
-      odom.pose.pose.position.z = 0.0;
-      odom.pose.pose.orientation = odom_quat;
-
-      //TODO change to real speed information
-      odom.twist.twist.linear.x = v_r_ist;
-      odom.twist.twist.linear.y = v_l_ist;
-      odom.twist.twist.angular.z = (v_r_ist - v_l_ist) / (2.0 * 100.0);
-
-      odom_pub.publish(odom);
-
-      //ultrasound.range = (1.0*IRdist[5])/100.0;
-      //ultrasound_pub.publish(ultrasound);
-
+    if(!use_gyrodometry) {
+      x = z_from_encoder;
+      y = - x_from_encoder;
+      th = - theta_from_encoder;
+    } else {
+      x = z_from_gyrodometry;
+      y = - x_from_gyrodometry;
+      th = - theta_from_gyrodometry;
     }
+
+    odom_quat = tf::createQuaternionMsgFromYaw(th);
+
+    odom_trans.header.stamp = current_time;
+    odom_trans.transform.translation.x = x;
+    odom_trans.transform.translation.y = y;
+    odom_trans.transform.translation.z = 0.0;
+    odom_trans.transform.rotation = odom_quat;
+
+    odom_broadcaster.sendTransform(odom_trans);
+
+    odom.header.stamp = current_time;
+    odom.pose.pose.position.x = x;
+    odom.pose.pose.position.y = y;
+    odom.pose.pose.position.z = 0.0;
+    odom.pose.pose.orientation = odom_quat;
+
+    odom.twist.twist.linear.x = v_encoder;
+    odom.twist.twist.linear.y = 0.0;
+    odom.twist.twist.angular.z = v_encoder_angular;
+
+    odom_pub.publish(odom);
+
+    imu.orientation = tf::createQuaternionMsgFromYaw(theta_from_gyro);
+    imu_pub.publish(imu);
+
+    //ultrasound.range = (1.0*IRdist[5])/100.0;
+    //ultrasound_pub.publish(ultrasound);
+
     if(use_rotunit) {
       can_getrotunit(&rot);
       joint_state.header.stamp = ros::Time::now();
@@ -295,8 +293,8 @@ void velCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
   double v_l_soll = 0.0, v_r_soll = 0.0;
   double AntiWindup = 1.0;
-  v_l_soll = ((msg->linear.x - (axis_length / 100.0) * msg->angular.z) /*/ wheelRadius*/);
-  v_r_soll = ((msg->linear.x + (axis_length / 100.0) * msg->angular.z)/*/wheelRadius*/);
+  v_l_soll = msg->linear.x - axis_length * msg->angular.z /*/ wheelRadius*/;
+  v_r_soll = msg->linear.x + axis_length * msg->angular.z/*/wheelRadius*/;
   if(msg->linear.x == 0 && msg->angular.z == 0) {
     AntiWindup = 0.0;
   }
@@ -308,13 +306,13 @@ void velCallback(const geometry_msgs::Twist::ConstPtr& msg)
      */
   if (use_microcontroller == 0) {
     set_wheel_speed2(v_l_soll, v_r_soll,
-        v_l_ist, v_r_ist,
+        v_encoder_left, v_encoder_right,
         0, Get_mtime_diff(), AntiWindup); //TODO use ros timer
     AntiWindup = 1.0;
   } else {
     set_wheel_speed2_mc(v_l_soll, v_r_soll,
-        v_l_ist, v_r_ist,
-        0, Get_mtime_diff(), AntiWindup); //TODO use ros timer
+        0, 0,
+        0, 0, AntiWindup);
     AntiWindup = 1.0;
   }
 }
@@ -336,134 +334,99 @@ void get_tilt()
   pitch = tilt_fb;
 }
 
-void gyro()
+void get_gyro()
 {
   static bool gyro_offset_read = false;
-  static double theta_alt_from_encoder = 0.0, theta_alt_from_gyro = 0.0;
-  static double theta_neu_from_gyro, sigma_from_gyro; //sigma is not used because its undocumented..
-  static double gyro_fehler = 0.0;
-
-  // beim allerersten Durchlauf Initialwerte einlesen
+  static double offset; // initial offset
+  double theta, sigma; // sigma is not used because its undocumented..
   if(!gyro_offset_read) {
-    can_gyro_mc1(&theta_alt_from_gyro, &sigma_from_gyro, NULL);
+    can_gyro_reset();
+    can_gyro_calibrate();
+    can_gyro_mc1(&theta, &sigma, NULL);
     gyro_offset_read = true;
-    sleep(10);
-    can_gyro_mc1(&theta_neu_from_gyro, &sigma_from_gyro, NULL);
+    if(use_gyrodometry) {
+      ROS_INFO("Initializing gyroscope, please wait");
+      sleep(10); // wait until gyro is stable
+      ROS_INFO("Done initializing gyroscope");
+    }
+    can_gyro_mc1(&offset, &sigma, NULL);
     return;
   }
-  // Daten vom Gyro holen
-  can_gyro_mc1(&theta_neu_from_gyro, &sigma_from_gyro, NULL);
+  can_gyro_mc1(&theta, &sigma, NULL);
+  theta_from_gyro = theta - offset;
+}
 
-  double dt_odo = theta_from_encoder - theta_alt_from_encoder;
-  double fehler_gyro = gyro_fehler;
+void gyrodometry(double local_dx, double local_dz)
+{
+  static double theta_alt_from_encoder = 0.0, theta_alt_from_gyro = 0.0;
+  static double fehler_gyro = 0.0;
+
   // ist |dt_gyro| > |grenze_gyro| stellt der gyro eine kurve fest
   double grenze_gyro = 0.015;
   // ist |dt_odo| > |grenze_odo| stellt odometrie eine kurve fest
   double grenze_odo = 0.0006;
-  double dt_gyro = theta_alt_from_gyro - theta_neu_from_gyro;
+
+  double dt_odo = theta_alt_from_encoder - theta_from_encoder;
+  double dt_gyro = theta_alt_from_gyro - theta_from_gyro;
 
   // machen Raeder eine Kurve?
   if(fabs(dt_odo) > grenze_odo) {
     // Fehler rausrechnen
     dt_gyro -= fehler_gyro;
     // Gyro zur winkelbestimmung nutzen
-    theta_from_gyro += dt_gyro;
+    theta_from_gyrodometry += dt_gyro;
   } // macht gyro eine kurve?
   else if (fabs(dt_gyro - fehler_gyro) > grenze_gyro) {
     // Fehler rausrechnen
     dt_gyro -= fehler_gyro;
     // Gyro zur Winkelbestimmung nutzen
-    theta_from_gyro += dt_gyro;
-  } // sonst relativ geradeaus, korrigiere gyro_fehler
+    theta_from_gyrodometry += dt_gyro;
+  } // sonst relativ geradeaus, korrigiere fehler_gyro
   else {
     double fehler_gyro_neu = dt_gyro - dt_odo;
     // alter Fehler wird gewichtet mit eingerechnet
     fehler_gyro = 0.6 * fehler_gyro_neu + 0.4 * fehler_gyro;
-    gyro_fehler = fehler_gyro;
-    theta_from_gyro += dt_odo;
+    theta_from_gyrodometry += dt_odo;
   }
   // Phasenkorrektur
-  if(theta_from_gyro > M_PI) theta_from_gyro -= 2*M_PI;
-  if(theta_from_gyro < -M_PI) theta_from_gyro += 2*M_PI;
-  theta_alt_from_gyro = theta_neu_from_gyro;
-  theta_alt_from_encoder = theta_from_encoder;
+  if(theta_from_gyrodometry > M_PI) theta_from_gyrodometry -= 2*M_PI;
+  if(theta_from_gyrodometry < -M_PI) theta_from_gyrodometry += 2*M_PI;
 
-  //cout << gyro_fehler << " " << theta_from_gyro << endl;
+  // x, z from gyro setzen
+  x_from_gyrodometry += local_dx * cos(theta_alt_from_gyro) + local_dz * sin(theta_alt_from_gyro);
+  z_from_gyrodometry += - local_dx * sin(theta_alt_from_gyro) + local_dz * cos(theta_alt_from_gyro);
+
+  theta_alt_from_gyro = theta_from_gyro;
+  theta_alt_from_encoder = theta_from_encoder;
 }
 
 bool odometry()
 {
-  // speed from odometry
-  double v_encoder = 0.0, v_encoder_left = 0.0, v_encoder_right = 0.0;
-  // "the" pose of the robot
-  double dx = 0.0, dz = 0.0, dtheta_y = 0.0;
-  // covered distance of wheels (left/right) -- resetted with each encoder update
-  double wheel_L = 0.0, wheel_R = 0.0;
-
-  double local_dx = 0.0;
-  double local_dz = 0.0;
-
-  if (!local_odometry(v_encoder, v_encoder_left, v_encoder_right, dx, dz, dtheta_y, wheel_L, wheel_R, local_dx, local_dz)) {
-    return false;
-  }
-
-  theta_from_encoder += dtheta_y;
-  if (theta_from_encoder > M_PI )
-    theta_from_encoder -= 2.0*M_PI ;
-  if (theta_from_encoder < -M_PI )
-    theta_from_encoder += 2.0*M_PI;
-
-  x_from_encoder += dx;
-  z_from_encoder += dz;
-
-  v_l_ist = v_encoder_left;
-  v_r_ist = v_encoder_right;
-
-  // x, z from gyro setzen
-  x_from_gyro += (local_dx * cos(theta_from_gyro)) +
-    (local_dz * sin(theta_from_gyro));
-  z_from_gyro += (-local_dx * sin(theta_from_gyro)) +
-    (local_dz * cos(theta_from_gyro));
-
-  return true;
-}
-
-bool local_odometry(double &v_encoder, double &v_encoder_left, double &v_encoder_right, double &dx, double &dz, double &dtheta_y, double &wheel_L, double &wheel_R, double &local_dx, double &local_dz)
-{
   long wheel_a = 0, wheel_b = 0;
-  double angular_velocity = 0.0;
-  double distance = 0.0;
-  double hypothenuse= 0.0;
+  int nr_msg = 0; // msg count since the last readout of encoder ticks
 
-  // read wheel encoder here
-  if (!k_read_wheel_encoder(&wheel_a, &wheel_b)) {
+  if (!k_read_wheel_encoder(&wheel_a, &wheel_b, &nr_msg)) {
     return false;
   }
 
-  Time_Diff *= 0.001;
+  // time_diff in sec; we hope kurt is precise ?? !! and sends every 10 ms
+  double time_diff = nr_msg * 0.01;
 
-  // Now we cal distance speed and position
-  wheel_L = wheel_perimeter * (wheel_a)
-    / ticks_per_turn_of_wheel;
-  wheel_R = wheel_perimeter * (wheel_b)
-    / ticks_per_turn_of_wheel;
+  // covered distance of wheels in meter
+  double wheel_L = wheel_perimeter * wheel_a / ticks_per_turn_of_wheel;
+  double wheel_R = wheel_perimeter * wheel_b / ticks_per_turn_of_wheel;
 
-  // distance is in cm negativ or positiv
-  distance = (wheel_L + wheel_R) * 0.5;
-
-  // calc different speeds in meter pro sec
-  // distance is in cm so * 0.01
-  v_encoder_left = wheel_L / Time_Diff * 0.01;
-  v_encoder_right = wheel_R / Time_Diff * 0.01;
+  // calc different speeds in meter / sec
+  v_encoder_left = wheel_L / time_diff;
+  v_encoder_right = wheel_R / time_diff;
   v_encoder = (v_encoder_right + v_encoder_left) * 0.5;
-
   // mehr Bahn als Winkelgeschwindigkeit
-  angular_velocity = (v_encoder_right - v_encoder_left) * 0.5;
-
-  // resets the timer
-  Time_Diff = 0.0;
+  v_encoder_angular = (v_encoder_right - v_encoder_left) * 0.5;
 
   // calc position deltas
+  double local_dx, local_dz, dtheta_y = 0.0;
+  const double EPSILON = 0.0001;
+
   if (fabs(wheel_L - wheel_R) < EPSILON)
   {
     if (fabs(wheel_L) < EPSILON)
@@ -479,7 +442,7 @@ bool local_odometry(double &v_encoder, double &v_encoder_left, double &v_encoder
   }
   else // (wheel_distance_a != wheel_distance_b) and > 0
   {
-    hypothenuse = 0.5 * (wheel_L + wheel_R);
+    double hypothenuse = 0.5 * (wheel_L + wheel_R);
 
     dtheta_y = (wheel_L - wheel_R) / axis_length * turning_adaptation;
 
@@ -488,10 +451,15 @@ bool local_odometry(double &v_encoder, double &v_encoder_left, double &v_encoder
   }
 
   // Odometrie : Koordinatentransformation in Weltkoordinaten
-  dx = (local_dx * cos(theta_from_encoder))
-    + (local_dz * sin(theta_from_encoder));
-  dz = (-(local_dx) * sin(theta_from_encoder))
-    + (local_dz * cos(theta_from_encoder));
+  x_from_encoder += local_dx * cos(theta_from_encoder) + local_dz * sin(theta_from_encoder);
+  z_from_encoder += - local_dx * sin(theta_from_encoder) + local_dz * cos(theta_from_encoder);
+
+  theta_from_encoder += dtheta_y;
+  if (theta_from_encoder > M_PI) theta_from_encoder -= 2.0 * M_PI;
+  if (theta_from_encoder < -M_PI) theta_from_encoder += 2.0 * M_PI;
+
+  if(use_gyrodometry)
+    gyrodometry(local_dx, local_dz);
 
   return true;
 }
@@ -500,18 +468,14 @@ bool local_odometry(double &v_encoder, double &v_encoder_left, double &v_encoder
  *          Auslesen der Zaehlerstaende auf der Encoder-Karte                *
  *****************************************************************************/
 // This function has to be called 100 times per second
-bool k_read_wheel_encoder (long *channel_1, long *channel_2)
+bool k_read_wheel_encoder (long *channel_1, long *channel_2, int *nr_msg)
 {
   char *retext; // return text of CAN interface functions
-  int nr_msg = 0; // msg count since the last readout of encoder ticks
-  if ((retext = can_encoder(channel_1, channel_2, &nr_msg))) {
+  if ((retext = can_encoder(channel_1, channel_2, nr_msg))) {
     ROS_WARN("error Can read encodervals (%s)", retext);
   }
-  //TODO change to timing of CAN (or ROS?)
-  // we hope kurt is precise ?? !! and sends every 10 ms
-  Time_Diff = (double)nr_msg * 10.0;
 
-  return nr_msg > 0;
+  return *nr_msg > 0;
 }
 
 void transmit_speed(void)
