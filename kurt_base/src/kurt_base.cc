@@ -9,7 +9,6 @@
 #include <sensor_msgs/Imu.h>
 //#include <sensor_msgs/Range.h>
 
-#include <sys/time.h>
 #include <signal.h>
 #include <stdlib.h>
 
@@ -71,42 +70,9 @@ void rotunitCallback(const geometry_msgs::Twist::ConstPtr& msg);
 void k_can_close(void);
 void set_wheel_speed2(double _v_l_soll, double _v_r_soll,
     double _v_l_ist, double _v_r_ist,
-    double _omega, long double Time, double _AntiWindup);
+    double _omega, double _AntiWindup);
 void set_wheel_speed2_mc(double _v_l_soll, double _v_r_soll,
-    double _v_l_ist, double _v_r_ist,
-    double _omega, long double Time, double _AntiWindup);
-
-unsigned long GetCurrentTimeInMilliSec(void)
-{
-  static struct timeval tv;
-  static unsigned long milliseconds;
-  gettimeofday(&tv, NULL);
-  milliseconds = tv.tv_sec * 1000 + tv.tv_usec / 1000; //TODO wtf
-  return milliseconds;
-}
-
-// Zeitmessung NR_TIMER -1 special since programm start
-// timer 0 is for local use
-long double Get_mtime_diff()
-{
-  static double   prev_clock;
-  static int      first_time = 1;
-  double          new_clock, clock_diff;
-
-  if (first_time) {
-    new_clock = GetCurrentTimeInMilliSec();
-    prev_clock = new_clock;
-    clock_diff =  new_clock;
-    first_time = 0;
-  }
-  else {
-    new_clock = GetCurrentTimeInMilliSec();
-    clock_diff = new_clock - prev_clock;
-    prev_clock = new_clock;
-  }
-
-  return(clock_diff);
-}
+    double _omega, double _AntiWindup);
 
 void quit(int sig)
 {
@@ -291,29 +257,20 @@ int main(int argc, char** argv)
 
 void velCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-  double v_l_soll = 0.0, v_r_soll = 0.0;
   double AntiWindup = 1.0;
-  v_l_soll = msg->linear.x - axis_length * msg->angular.z /*/ wheelRadius*/;
-  v_r_soll = msg->linear.x + axis_length * msg->angular.z/*/wheelRadius*/;
+  double v_l_soll = msg->linear.x - axis_length * msg->angular.z /*/ wheelRadius*/;
+  double v_r_soll = msg->linear.x + axis_length * msg->angular.z/*/wheelRadius*/;
+
   if(msg->linear.x == 0 && msg->angular.z == 0) {
     AntiWindup = 0.0;
   }
-  /*
-     v_l_soll = 0.1;
-     cout << v_l_soll << " " << v_r_soll << endl;
-     set_wheel_speed1(v_l_soll, v_r_soll, 0, 0);
-     return;
-     */
-  if (use_microcontroller == 0) {
+
+  if(use_microcontroller) {
+    set_wheel_speed2_mc(v_l_soll, v_r_soll, 0, AntiWindup);
+  } else {
     set_wheel_speed2(v_l_soll, v_r_soll,
         v_encoder_left, v_encoder_right,
-        0, Get_mtime_diff(), AntiWindup); //TODO use ros timer
-    AntiWindup = 1.0;
-  } else {
-    set_wheel_speed2_mc(v_l_soll, v_r_soll,
-        0, 0,
-        0, 0, AntiWindup);
-    AntiWindup = 1.0;
+        0, AntiWindup);
   }
 }
 
@@ -688,17 +645,16 @@ void set_wheel_speed1(double v_l, double v_r, int integration_l, int integration
 }
 
 void set_wheel_speed2_mc(double _v_l_soll, double _v_r_soll,
-    double _v_l_ist, double _v_r_ist,
-    double _omega, long double Time, double _AntiWindup)
+    double _omega, double _AntiWindup)
 {
-  // solldaten an controller uebermitteln
   char *retext; // return text of CAN interface functions
-  const long factor = 100; // faktor um nachkommastellen mitzu übertragen, gesendet werden
+  // faktor um nachkommastellen mitzu übertragen, gesendet werden
   // nämlich nur integer werte ([+-]32e3 !)
-  if ((retext = can_speed_cm((int)(_v_l_soll * factor),
+  const long factor = 100;
+  if (retext = can_speed_cm((int)(_v_l_soll * factor),
           (int)(_v_r_soll * factor),
           (int)(factor * _omega / M_PI),
-          (int)_AntiWindup))) {
+          (int)_AntiWindup)) {
     ROS_INFO("set_wheel_speed2_mc %s", retext);
   }
 }
@@ -708,7 +664,7 @@ void set_wheel_speed2_mc(double _v_l_soll, double _v_r_soll,
 // zu berechnen
 void set_wheel_speed2(double _v_l_soll, double _v_r_soll,
     double _v_l_ist, double _v_r_ist,
-    double _omega, long double Time, double _AntiWindup)
+    double _omega, double _AntiWindup)
 {
   int holdl = 0, holdr = 0; // delete errors
 
@@ -724,7 +680,6 @@ void set_wheel_speed2(double _v_l_soll, double _v_r_soll,
   static double del = 0.0, der = 0.0;
   static double last_del = 0.0, last_der = 0.0;
   // zeitinterval
-  static long double last_time = 0.0;
   double dt = 0.1;
   // filter fuer gueltige Werte
   static double last_v_l_ist = 0.0, last_v_r_ist = 0.0;
@@ -736,17 +691,11 @@ void set_wheel_speed2(double _v_l_soll, double _v_r_soll,
   // kd_l and kd_r allways 0 (using only pi controller here)
   double kd_l = 0.0, kd_r = 0.0; // nur pi regler d-anteil ausblenden
 
-  if ((dt = (Time - last_time) < 10.0))
-    dt = 0.01;
-  else
-    dt = (double)((int)((Time - last_time) * 0.1) * 0.01); // runden auf 10 20 ...
+  //TODO use ros timer
+  dt = 0.01;
 
   int_el *= _AntiWindup; int_er *= _AntiWindup;
 
-  //@@@ TODO already in the kurt software
-  if ((dt > 5.0)) {
-    dt = 0.0;
-  }
   last_v_l_ist *= _AntiWindup;
   last_v_r_ist *= _AntiWindup;
 
@@ -805,7 +754,6 @@ void set_wheel_speed2(double _v_l_soll, double _v_r_soll,
     holdr = 1;
   }
 
-  last_time = Time;
 
   // range check und antiwindup stellgroessenbeschraenkung
   // verhindern das der integrier weiter hochlaeuft
