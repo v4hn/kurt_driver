@@ -301,11 +301,7 @@ void get_gyro()
     can_gyro_calibrate();
     can_gyro_mc1(&theta, &sigma, NULL);
     gyro_offset_read = true;
-    if(use_gyrodometry) {
-      ROS_INFO("Initializing gyroscope, please wait");
-      sleep(10); // wait until gyro is stable
-      ROS_INFO("Done initializing gyroscope");
-    }
+    sleep(10); // wait until gyro is stable
     can_gyro_mc1(&offset, &sigma, NULL);
     return;
   }
