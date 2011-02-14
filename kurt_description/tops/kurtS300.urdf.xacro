@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<robot
+  xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <include filename="$(find kurt_description)/parts/sick_s300.urdf.xacro" />
+
+  <link name="kurt2_top">
+    <visual>
+      <geometry>
+        <box size=".25 .32 .26" />
+      </geometry>
+      <origin xyz="0 -.13 .13" rpy="0 0 0" />
+      <material name="silver" >
+          <color rgba=".2 .2 .2 1" />
+      </material>
+    </visual>
+  </link>
+
+  <joint name="laser_joint" type="fixed">
+    <parent link="kurt2_top" />
+    <child link="laser" />
+    <origin xyz="0 0 0.22" rpy="0 0 0" />
+  </joint>
+</robot>

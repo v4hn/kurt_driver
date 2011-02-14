@@ -1,0 +1,6 @@
+<launch>
+  <node pkg="sicks300" type="sick300_driver" name="sick300_driver">
+    <param name="devicename" value="/dev/ttyUSB0" />
+    <param name="send_transform" value="false" />
+  </node>
+</launch>
