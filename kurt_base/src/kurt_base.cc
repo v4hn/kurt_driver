@@ -127,10 +127,14 @@ int main(int argc, char** argv)
     free(v_pwm_r);
   }
 
-  std::string prefix_param;
-  n.searchParam("tf_prefix", prefix_param);
-  std::string tf_prefix;
-  n.getParam(prefix_param, tf_prefix);
+  bool publish_tf;
+  string prefix_param;
+  string tf_prefix;
+  nh_ns.param("publish_tf", publish_tf, true);
+  if(publish_tf) {
+    n.searchParam("tf_prefix", prefix_param);
+    n.getParam(prefix_param, tf_prefix);
+  }
 
   sensor_msgs::JointState joint_state;
   ros::Publisher joint_pub;
@@ -179,8 +183,11 @@ int main(int argc, char** argv)
   odom.child_frame_id = "base_link";
 
   geometry_msgs::TransformStamped odom_trans;
-  odom_trans.header.frame_id = tf::resolve(tf_prefix, "odom");
-  odom_trans.child_frame_id = tf::resolve(tf_prefix, "base_link");
+
+  if(publish_tf) {
+    odom_trans.header.frame_id = tf::resolve(tf_prefix, "odom");
+    odom_trans.child_frame_id = tf::resolve(tf_prefix, "base_link");
+  }
 
   ros::Publisher imu_pub = n.advertise<sensor_msgs::Imu>("imu", 10);
   sensor_msgs::Imu imu;
@@ -215,13 +222,15 @@ int main(int argc, char** argv)
 
     odom_quat = tf::createQuaternionMsgFromYaw(th);
 
-    odom_trans.header.stamp = current_time;
-    odom_trans.transform.translation.x = x;
-    odom_trans.transform.translation.y = y;
-    odom_trans.transform.translation.z = 0.0;
-    odom_trans.transform.rotation = odom_quat;
+    if(publish_tf) {
+      odom_trans.header.stamp = current_time;
+      odom_trans.transform.translation.x = x;
+      odom_trans.transform.translation.y = y;
+      odom_trans.transform.translation.z = 0.0;
+      odom_trans.transform.rotation = odom_quat;
 
-    odom_broadcaster.sendTransform(odom_trans);
+      odom_broadcaster.sendTransform(odom_trans);
+    }
 
     odom.header.stamp = current_time;
     odom.pose.pose.position.x = x;
