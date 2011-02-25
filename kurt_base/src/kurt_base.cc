@@ -251,6 +251,7 @@ int main(int argc, char** argv)
 
     odom_pub.publish(odom);
 
+    imu.header.stamp = current_time;
     imu.orientation = tf::createQuaternionMsgFromYaw(theta_from_gyro);
     imu_pub.publish(imu);
 
