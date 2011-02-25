@@ -21,6 +21,7 @@ using std::max;
 
 // speed from encoder in m/s
 double v_encoder_left = 0.0, v_encoder_right = 0.0, v_encoder = 0.0, v_encoder_angular = 0.0;
+double sigma_x_, sigma_theta_, cov_x_theta_;
 
 // poses from encoder in m
 double theta_from_encoder = 0.0, x_from_encoder = 0.0, z_from_encoder = 0.0;
@@ -62,6 +63,7 @@ void make_pwm_v_tab(int nr, double *v_pwm_l, double *v_pwm_r, int nr_v, int **pw
 int k_can_init(void);
 bool k_read_wheel_encoder (long *channel_1, long *channel_2, int *nr_msg);
 bool odometry();
+void populateCovariance(nav_msgs::Odometry &msg);
 void get_gyro();
 bool infrared_sonar();
 void get_tilt();
@@ -104,6 +106,10 @@ int main(int argc, char** argv)
 
   nh_ns.param("use_gyrodometry", use_gyrodometry, false);
   nh_ns.param("use_rotunit", use_rotunit, false);
+
+  nh_ns.param("x_stddev", sigma_x_, 0.002);
+  nh_ns.param("rotation_stddev", sigma_theta_, 0.017);
+  nh_ns.param("cov_xrotation", cov_x_theta_, 0.0);
 
   use_microcontroller = true;
 
@@ -241,6 +247,7 @@ int main(int argc, char** argv)
     odom.twist.twist.linear.x = v_encoder;
     odom.twist.twist.linear.y = 0.0;
     odom.twist.twist.angular.z = v_encoder_angular;
+    populateCovariance(odom);
 
     odom_pub.publish(odom);
 
@@ -424,6 +431,37 @@ bool odometry()
     gyrodometry(local_dx, local_dz);
 
   return true;
+}
+
+void populateCovariance(nav_msgs::Odometry &msg)
+{
+  double  odom_multiplier = 1.0;
+
+  if(fabs(v_encoder) <= 1e-8 && fabs(v_encoder_angular) <= 1e-8)
+  {
+  //nav_msgs::Odometry has a 6x6 covariance matrix
+    msg.pose.covariance[0] = 1e-12;
+    msg.pose.covariance[35] = 1e-12;
+
+    msg.pose.covariance[30] = 1e-12;
+    msg.pose.covariance[5] = 1e-12;
+  }
+  else
+  {
+  //nav_msgs::Odometry has a 6x6 covariance matrix
+    msg.pose.covariance[0] = odom_multiplier*pow(sigma_x_,2);
+    msg.pose.covariance[35] = odom_multiplier*pow(sigma_theta_,2);
+
+    msg.pose.covariance[30] = odom_multiplier*cov_x_theta_;
+    msg.pose.covariance[5] = odom_multiplier*cov_x_theta_;
+  }
+
+  msg.pose.covariance[7] = DBL_MAX;
+  msg.pose.covariance[14] = DBL_MAX;
+  msg.pose.covariance[21] = DBL_MAX;
+  msg.pose.covariance[28] = DBL_MAX;
+
+  msg.twist.covariance = msg.pose.covariance;
 }
 
 /*****************************************************************************
