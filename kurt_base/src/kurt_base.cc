@@ -21,7 +21,7 @@ using std::max;
 
 // speed from encoder in m/s
 double v_encoder_left = 0.0, v_encoder_right = 0.0, v_encoder = 0.0, v_encoder_angular = 0.0;
-double sigma_x_, sigma_theta_, cov_x_theta_;
+double sigma_x_, sigma_theta_, cov_x_y_, cov_x_theta_, cov_y_theta_;
 
 // poses from encoder in m
 double theta_from_encoder = 0.0, x_from_encoder = 0.0, z_from_encoder = 0.0;
@@ -109,7 +109,9 @@ int main(int argc, char** argv)
 
   nh_ns.param("x_stddev", sigma_x_, 0.002);
   nh_ns.param("rotation_stddev", sigma_theta_, 0.017);
+  nh_ns.param("cov_xy", cov_x_y_, 0.0);
   nh_ns.param("cov_xrotation", cov_x_theta_, 0.0);
+  nh_ns.param("cov_yrotation", cov_y_theta_, 0.0);
 
   use_microcontroller = true;
 
@@ -441,28 +443,49 @@ void populateCovariance(nav_msgs::Odometry &msg)
   if(fabs(v_encoder) <= 1e-8 && fabs(v_encoder_angular) <= 1e-8)
   {
   //nav_msgs::Odometry has a 6x6 covariance matrix
-    msg.pose.covariance[0] = 1e-12;
-    msg.pose.covariance[35] = 1e-12;
+    msg.twist.covariance[0] = 1e-12;
+    msg.twist.covariance[35] = 1e-12;
 
-    msg.pose.covariance[30] = 1e-12;
-    msg.pose.covariance[5] = 1e-12;
+    msg.twist.covariance[30] = 1e-12;
+    msg.twist.covariance[5] = 1e-12;
   }
   else
   {
   //nav_msgs::Odometry has a 6x6 covariance matrix
-    msg.pose.covariance[0] = odom_multiplier*pow(sigma_x_,2);
-    msg.pose.covariance[35] = odom_multiplier*pow(sigma_theta_,2);
+    msg.twist.covariance[0] = odom_multiplier*pow(sigma_x_,2);
+    msg.twist.covariance[35] = odom_multiplier*pow(sigma_theta_,2);
 
-    msg.pose.covariance[30] = odom_multiplier*cov_x_theta_;
-    msg.pose.covariance[5] = odom_multiplier*cov_x_theta_;
+    msg.twist.covariance[30] = odom_multiplier*cov_x_theta_;
+    msg.twist.covariance[5] = odom_multiplier*cov_x_theta_;
   }
 
-  msg.pose.covariance[7] = DBL_MAX;
-  msg.pose.covariance[14] = DBL_MAX;
-  msg.pose.covariance[21] = DBL_MAX;
-  msg.pose.covariance[28] = DBL_MAX;
+  msg.twist.covariance[7] = DBL_MAX;
+  msg.twist.covariance[14] = DBL_MAX;
+  msg.twist.covariance[21] = DBL_MAX;
+  msg.twist.covariance[28] = DBL_MAX;
 
-  msg.twist.covariance = msg.pose.covariance;
+  msg.pose.covariance = msg.twist.covariance;
+
+  if(fabs(v_encoder) <= 1e-8 && fabs(v_encoder_angular) <= 1e-8)
+  {
+      msg.pose.covariance[7] = 1e-12;
+
+      msg.pose.covariance[1] = 1e-12;
+      msg.pose.covariance[6] = 1e-12;
+
+      msg.pose.covariance[31] = 1e-12;
+      msg.pose.covariance[11] = 1e-12;
+  }
+  else
+  {
+      msg.pose.covariance[7] = odom_multiplier*pow(sigma_x_,2)*pow(sigma_theta_,2);
+
+      msg.pose.covariance[1] = odom_multiplier*cov_x_y_;
+      msg.pose.covariance[6] = odom_multiplier*cov_x_y_;
+
+      msg.pose.covariance[31] = odom_multiplier*cov_y_theta_;
+      msg.pose.covariance[11] = odom_multiplier*cov_y_theta_;
+  }
 }
 
 /*****************************************************************************
