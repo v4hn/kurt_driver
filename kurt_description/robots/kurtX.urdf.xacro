@@ -3,23 +3,14 @@
   xmlns:xacro="http://ros.org/wiki/xacro"
   name="kurtX">
 
-  <include filename="$(find kurt_description)/common.xacro" />
-
   <include filename="$(find kurt_base)/urdf/kurt_outdoor.urdf.xacro" />
 
-  <include filename="$(find kurt_description)/tops/kurt360.urdf.xacro" />
-
-  <include filename="$(find kurt_base)/urdf/rotunit.urdf.xacro" />
+  <include filename="$(find kurt_description)/tops/kurtX.urdf.xacro" />
 
   <joint name="top_base_joint" type="fixed">
-    <child link="kurt360_top" />
+    <child link="kurtX_top" />
     <parent link="base_link" />
-  </joint>
-
-  <joint name="laser_top_joint" type="fixed">
-    <child link="laser_rot_mount_link" />
-    <parent link="kurt360_top" />
-    <origin xyz="0 0 0" rpy="0 0 ${M_PI/2}" />
+    <origin xyz="0 0 0.1075" />
   </joint>
 
 </robot>

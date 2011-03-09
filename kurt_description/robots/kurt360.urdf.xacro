@@ -7,16 +7,10 @@
 
   <include filename="$(find kurt_description)/tops/kurt360.urdf.xacro" />
 
-  <include filename="$(find kurt_base)/urdf/rotunit.urdf.xacro" />
-
   <joint name="top_base_joint" type="fixed">
     <child link="kurt360_top" />
     <parent link="base_link" />
-  </joint>
-
-  <joint name="laser_top_joint" type="fixed">
-    <child link="laser_rot_mount_link" />
-    <parent link="kurt360_top" />
+    <origin xyz="0 0 0.1075" />
   </joint>
 
 </robot>

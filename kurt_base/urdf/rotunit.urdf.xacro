@@ -16,12 +16,39 @@
         <color rgba="0.2 0.2 0.2 1" />
       </material>
     </visual>
+    <collision>
+      <geometry>
+        <box size=".18 .18 .143" />
+      </geometry>
+    </collision>
   </link>
 
   <joint name="laser_rot_joint" type="continuous">
     <parent link="laser_rot_mount_link" />
     <child link="laser" />
-    <origin xyz="0 0 0.22" rpy="${-M_PI/2} 0 0" />
+    <origin xyz="0 0 0.143" rpy="${-M_PI/2} 0 0" />
     <axis xyz="0 1 0" />
+  </joint>
+
+  <link name="harting_rot_link">
+    <visual>
+      <geometry>
+        <box size=".1 .13 .06" />
+      </geometry>
+      <material name="silver" >
+        <color rgba="0.2 0.2 0.2 1" />
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size=".1 .13 .06" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="harting_rot_joint" type="fixed">
+    <parent link="laser_rot_mount_link" />
+    <child link="harting_rot_link" />
+    <origin xyz="-0.09 0 0" />
   </joint>
 </robot>

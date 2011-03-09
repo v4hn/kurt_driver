@@ -5,11 +5,16 @@
   <link name="base_link">
     <visual>
       <geometry>
-        <box size=".43 .43 .23" />
+        <box size=".43 .325 .215" />
       </geometry>
       <material name="red" >
         <color rgba="1 0 0 1" />
       </material>
     </visual>
+    <collision>
+      <geometry>
+        <box size=".43 .325 .215" />
+      </geometry>
+    </collision>
   </link>
 </robot>
