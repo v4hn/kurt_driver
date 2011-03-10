@@ -1,0 +1,7 @@
+<launch>
+  <!-- send kurt urdf to param server -->
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_gazebo)/kurt.urdf.xacro'" />
+
+  <!-- push robot_description to factory and spawn robot in gazebo -->
+  <node name="spawn_kurt_model" pkg="gazebo" type="spawn_model" args="-urdf -param robot_description -model kurt -z .6" respawn="false" output="screen" />
+</launch>

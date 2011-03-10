@@ -1,0 +1,14 @@
+<package>
+  <description brief="kurt_base">
+
+     kurt_gazebo
+
+  </description>
+  <author>Michael Stypa</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/kurt_gazebo</url>
+  <!-- <depend package="tf"/> -->
+</package>
+
+
