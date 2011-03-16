@@ -1,6 +1,6 @@
-min_sensor_dist: .1
+min_sensor_dist: .01
 
-self_see_default_padding: .1
+self_see_default_padding: .01
 
 self_see_links:
   - name: laser_rot_mount_link
