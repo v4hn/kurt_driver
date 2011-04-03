@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
   <node pkg="kurt_base" type="kurt_base" name="kurt_base">
     <param name="ticks_per_turn_of_wheel" value="5120" />

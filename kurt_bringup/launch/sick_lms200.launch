@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
   <node pkg="sicktoolbox_wrapper" type="sicklms" name="sicklms">
     <param name="port" value="/dev/ttyUSB0" />
