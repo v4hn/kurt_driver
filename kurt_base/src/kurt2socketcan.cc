@@ -92,7 +92,7 @@ int cansocket; // can raw socket
 
 char *send_frame(can_frame &frame) {
   if ((nbytes = write(s, frame, sizeof(frame))) != sizeof(frame)) {                             
-    perror("write");
+    perror("kurt2socketcan: error writing socket.");
     return 1;
   }
   return(0);
@@ -114,7 +114,7 @@ char *can_init(int *version) {
   /* open socket */
   cansocket = socket(PF_CAN, SOCK_RAW, CAN_RAW); 
   if (cansocket < 0) {
-    perror("socket");
+    perror("kurt2socketcan: error opening socket.");
     return 1;
   }
 
@@ -122,7 +122,8 @@ char *can_init(int *version) {
 
   strcpy(ifr.ifr_name, caninterface);
   if (ioctl(cansocket, SIOCGIFINDEX, &ifr) < 0) {
-    perror("SIOCGIFINDEX");
+    perror("kurt2socketcan: SIOCGIFINDEX.");
+    perror(caninterface);
     return 1;
   }
   addr.can_ifindex = ifr.ifr_ifindex;
@@ -134,7 +135,7 @@ char *can_init(int *version) {
   // setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0);
 
   if (bind(cansocket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    perror("bind");
+    perror("kurt2socketcan: error binding socket.");
     return 1;
   }
 
