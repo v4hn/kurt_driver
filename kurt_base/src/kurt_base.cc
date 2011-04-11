@@ -1,4 +1,4 @@
-#include "kurt2can.h"
+#include "kurt2socketcan.h"
 
 #include <ros/ros.h>
 #include <ros/console.h>

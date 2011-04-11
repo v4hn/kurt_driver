@@ -82,24 +82,63 @@ _U16           uwTrmCntT;
 _U32           ulFrameCntT;
 
 // SocketCan specific variables
-int s; // can raw socket
-int nbytes; // temp variable for error handling
-struct sockaddr_can addr;
-struct ifreq ifr;
+int cansocket; // can raw socket
 
-
-/* TOKILL
+/* TODO KILL
    char *can_error(char *source) {
    return(0);
    }
    */
+
+char *send_frame(can_frame &frame) {
+  if ((nbytes = write(s, frame, sizeof(frame))) != sizeof(frame)) {                             
+    perror("write");
+    return 1;
+  }
+  return(0);
+}
 
 char *can_read_fifo(void) {
   return(0);
 }
 
 char *can_init(int *version) {
-  struct can_frame frame;                                    
+
+  *version = VERSION;
+
+  // initializing socketcan
+  struct sockaddr_can addr;                                                                      
+  struct ifreq ifr;
+  char *caninterface = 'can0'; //TODO automatic searching for caninterface
+
+  /* open socket */
+  cansocket = socket(PF_CAN, SOCK_RAW, CAN_RAW); 
+  if (cansocket < 0) {
+    perror("socket");
+    return 1;
+  }
+
+  addr.can_family = AF_CAN;
+
+  strcpy(ifr.ifr_name, caninterface);
+  if (ioctl(cansocket, SIOCGIFINDEX, &ifr) < 0) {
+    perror("SIOCGIFINDEX");
+    return 1;
+  }
+  addr.can_ifindex = ifr.ifr_ifindex;
+
+  /* disable default receive filter on this RAW socket */
+  /* This is obsolete as we do not read from the socket at all, but for */
+  /* this reason we can remove the receive list in the Kernel to save a */
+  /* little (really a very little!) CPU usage.                          */
+  // setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0);
+
+  if (bind(cansocket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+    perror("bind");
+    return 1;
+  }
+
+  // initializing data structure
 
   for (i = 0; i < 8; i++) {
     info_1[i]   = 0;
@@ -132,61 +171,60 @@ char *can_init(int *version) {
 }
 
 char *can_close(void) {
-  CpUserDriverRelease(&tsCanPort1);
-  return(NULL);
+  close(cansocket);
+  return(0);
 }
 
 char *can_motor(int left_pwm,  char left_dir,  char left_brake,
     int right_pwm, char right_dir, char right_brake) {
-  _TsCpCanMsg MsgOut;
+
+  struct can_frame frame;
 
   char left_dir_brake =  (left_dir << 1) + left_brake;
   char right_dir_brake = (right_dir << 1) + right_brake;
 
-  memset(&MsgOut, 0, sizeof(MsgOut));
-  MsgOut.tuMsgId.uwStd = CAN_CONTROL;
-  MsgOut.ubMsgDLC = 8;
-  MsgOut.tuMsgData.aubByte[0] = RAW >> 8;
-  MsgOut.tuMsgData.aubByte[1] = RAW;
-  MsgOut.tuMsgData.aubByte[2] = (_U08)(left_dir_brake);
-  MsgOut.tuMsgData.aubByte[3] = (_U08)(left_pwm >> 8);
-  MsgOut.tuMsgData.aubByte[4] = (_U08)(left_pwm);
-  MsgOut.tuMsgData.aubByte[5] = (_U08)(right_dir_brake);
-  MsgOut.tuMsgData.aubByte[6] = (_U08)(right_pwm >> 8);
-  MsgOut.tuMsgData.aubByte[7] = (_U08)(right_pwm);
+  frame.can_id = CAN_CONTROL;
+  frame.can_dlc = 8;
+  frame.data[0] = RAW >> 8;
+  frame.data[1] = RAW;
+  frame.data[2] = (_U08)(left_dir_brake);
+  frame.data[3] = (_U08)(left_pwm >> 8);
+  frame.data[4] = (_U08)(left_pwm);
+  frame.data[5] = (_U08)(right_dir_brake);
+  frame.data[6] = (_U08)(right_pwm >> 8);
+  frame.data[7] = (_U08)(right_pwm);
 
   uwTrmCntT = 1;
-  //send
+  send_frame(frame);
 
   return(NULL);
 }
 
 char *can_speed(int left_speed, int right_speed) {
-  _TsCpCanMsg MsgOut;
+  struct can_frame frame;
 
-  memset(&MsgOut, 0, sizeof(MsgOut));
-  MsgOut.tuMsgId.uwStd = CAN_CONTROL;
-  MsgOut.ubMsgDLC = 8;
-  MsgOut.tuMsgData.aubByte[0] = SPEED >> 8;
-  MsgOut.tuMsgData.aubByte[1] = SPEED;
-  MsgOut.tuMsgData.aubByte[2] = left_speed >> 8;
-  MsgOut.tuMsgData.aubByte[3] = left_speed;
-  MsgOut.tuMsgData.aubByte[4] = right_speed >> 8;
-  MsgOut.tuMsgData.aubByte[5] = right_speed;
-  MsgOut.tuMsgData.aubByte[6] = 0;
-  MsgOut.tuMsgData.aubByte[7] = 0;
+  frame.can_id = CAN_CONTROL;
+  frame.can_dlc = 8;
+  frame.data[0] = SPEED >> 8;
+  frame.data[1] = SPEED;
+  frame.data[2] = left_speed >> 8;
+  frame.data[3] = left_speed;
+  frame.data[4] = right_speed >> 8;
+  frame.data[5] = right_speed;
+  frame.data[6] = 0;
+  frame.data[7] = 0;
 
   uwTrmCntT = 1;
-  //send
+  send_frame(frame);
 
-  return(NULL);
+  return(0);
 }
 
 
 
 char *can_speed_cm(int left_speed, int right_speed, int omega,
     int AntiWindup) {
-  _TsCpCanMsg MsgOut;
+  struct can_frame frame;
   //printf("vl: %d, vr: %d, omega: %d, aw: %d\n",left_speed, right_speed, omega, AntiWindup);
   int sign   = omega < 0      ? 1 : 0;
   int windup = AntiWindup > 0 ? 1 : 0;
@@ -194,150 +232,142 @@ char *can_speed_cm(int left_speed, int right_speed, int omega,
   omega = (omega << 1) + sign;
   omega = (omega << 1) + windup;
 
-
-  memset(&MsgOut, 0, sizeof(MsgOut));
-  MsgOut.tuMsgId.uwStd = CAN_CONTROL;
-  MsgOut.ubMsgDLC = 8;
-  MsgOut.tuMsgData.aubByte[0] = SPEED_CM >> 8;
-  MsgOut.tuMsgData.aubByte[1] = SPEED_CM;
-  MsgOut.tuMsgData.aubByte[2] = left_speed >> 8;
-  MsgOut.tuMsgData.aubByte[3] = left_speed;
-  MsgOut.tuMsgData.aubByte[4] = right_speed >> 8;
-  MsgOut.tuMsgData.aubByte[5] = right_speed;
-  MsgOut.tuMsgData.aubByte[6] = omega >> 8;
-  MsgOut.tuMsgData.aubByte[7] = omega;
+  frame.can_id = CAN_CONTROL;
+  frame.can_dlc = 8;
+  frame.data[0] = SPEED_CM >> 8;
+  frame.data[1] = SPEED_CM;
+  frame.data[2] = left_speed >> 8;
+  frame.data[3] = left_speed;
+  frame.data[4] = right_speed >> 8;
+  frame.data[5] = right_speed;
+  frame.data[6] = omega >> 8;
+  frame.data[7] = omega;
 
   uwTrmCntT = 1;
-  //send
+  send_frame(frame);
 
   return(NULL);
 }
 
 char *can_float(int mode, float f1, float f2) {
-  _TsCpCanMsg MsgOut;
+  struct can_frame frame;
 
   long l1 = (long)(1e6*f1);
 
-  memset(&MsgOut, 0, sizeof(MsgOut));
-  MsgOut.tuMsgId.uwStd = CAN_CONTROL;
-  MsgOut.ubMsgDLC = 8;
-  MsgOut.tuMsgData.aubByte[0] = (_U08)(mode >> 8);
-  MsgOut.tuMsgData.aubByte[1] = (_U08)mode;
-  MsgOut.tuMsgData.aubByte[2] = l1 >> 24;
-  MsgOut.tuMsgData.aubByte[3] = l1 >> 16;
-  MsgOut.tuMsgData.aubByte[4] = l1 >>  8;
-  MsgOut.tuMsgData.aubByte[5] = l1;
-  MsgOut.tuMsgData.aubByte[6] = 0;
-  MsgOut.tuMsgData.aubByte[7] = 0;
+  frame.can_id = CAN_CONTROL;
+  frame.can_dlc = 8;
+  frame.data[0] = (_U08)(mode >> 8);
+  frame.data[1] = (_U08)mode;
+  frame.data[2] = l1 >> 24;
+  frame.data[3] = l1 >> 16;
+  frame.data[4] = l1 >>  8;
+  frame.data[5] = l1;
+  frame.data[6] = 0;
+  frame.data[7] = 0;
 
   uwTrmCntT = 1;
-  //send
+  send_frame(frame);
 
   return(NULL);
 }
 
 char *can_mc_reset() {
-  _TsCpCanMsg MsgOut;
+  struct can_frame frame;
 
-  memset(&MsgOut, 0, sizeof(MsgOut));
-  MsgOut.tuMsgId.uwStd = CAN_CONTROL;
-  MsgOut.ubMsgDLC = 8;
-  MsgOut.tuMsgData.aubByte[0] = (_U08)(MC_RESET >> 8);
-  MsgOut.tuMsgData.aubByte[1] = (_U08)MC_RESET;
-  MsgOut.tuMsgData.aubByte[2] = 0;
-  MsgOut.tuMsgData.aubByte[3] = 0;
-  MsgOut.tuMsgData.aubByte[4] = 0;
-  MsgOut.tuMsgData.aubByte[5] = 0;
-  MsgOut.tuMsgData.aubByte[6] = 0;
-  MsgOut.tuMsgData.aubByte[7] = 0;
+  frame.can_id = CAN_CONTROL;
+  frame.can_dlc = 8;
+  frame.data[0] = (_U08)(MC_RESET >> 8);
+  frame.data[1] = (_U08)MC_RESET;
+  frame.data[2] = 0;
+  frame.data[3] = 0;
+  frame.data[4] = 0;
+  frame.data[5] = 0;
+  frame.data[6] = 0;
+  frame.data[7] = 0;
 
   uwTrmCntT = 1;
-  //send
+  send_frame(frame);
+  send_frame(frame);
 
   return(NULL);
 }
 
 char *can_gyro_calibrate() {
-  _TsCpCanMsg MsgOut;
+  struct can_frame frame;
 
-  memset(&MsgOut, 0, sizeof(MsgOut));
-  MsgOut.tuMsgId.uwStd = CAN_CONTROL;
-  MsgOut.ubMsgDLC = 8;
-  MsgOut.tuMsgData.aubByte[0] = (_U08)(0xff);
-  MsgOut.tuMsgData.aubByte[1] = (_U08)(0x02);
-  MsgOut.tuMsgData.aubByte[2] = 0;
-  MsgOut.tuMsgData.aubByte[3] = 0;
-  MsgOut.tuMsgData.aubByte[4] = 0;
-  MsgOut.tuMsgData.aubByte[5] = 0;
-  MsgOut.tuMsgData.aubByte[6] = 0;
-  MsgOut.tuMsgData.aubByte[7] = 0;
+  frame.can_id = CAN_CONTROL;
+  frame.can_dlc = 8;
+  frame.data[0] = (_U08)(0xff);
+  frame.data[1] = (_U08)(0x02);
+  frame.data[2] = 0;
+  frame.data[3] = 0;
+  frame.data[4] = 0;
+  frame.data[5] = 0;
+  frame.data[6] = 0;
+  frame.data[7] = 0;
 
   uwTrmCntT = 1;
-  //send
+  send_frame(frame);
 
   return(NULL);
 }
 
 char *can_gyro_reset() {
-  _TsCpCanMsg MsgOut;
+  struct can_frame frame;
 
-
-  memset(&MsgOut, 0, sizeof(MsgOut));
-  MsgOut.tuMsgId.uwStd = CAN_CONTROL;
-  MsgOut.ubMsgDLC = 8;
-  MsgOut.tuMsgData.aubByte[0] = (_U08)(0xff);
-  MsgOut.tuMsgData.aubByte[1] = (_U08)(0x03);
-  MsgOut.tuMsgData.aubByte[2] = 0;
-  MsgOut.tuMsgData.aubByte[3] = 0;
-  MsgOut.tuMsgData.aubByte[4] = 0;
-  MsgOut.tuMsgData.aubByte[5] = 0;
-  MsgOut.tuMsgData.aubByte[6] = 0;
-  MsgOut.tuMsgData.aubByte[7] = 0;
+  frame.can_id = CAN_CONTROL;
+  frame.can_dlc = 8;
+  frame.data[0] = (_U08)(0xff);
+  frame.data[1] = (_U08)(0x03);
+  frame.data[2] = 0;
+  frame.data[3] = 0;
+  frame.data[4] = 0;
+  frame.data[5] = 0;
+  frame.data[6] = 0;
+  frame.data[7] = 0;
 
   uwTrmCntT = 1;
-  //send
+  send_frame(frame);
 
   return(NULL);
 }
 
 char *can_ssc_reset() {
-  _TsCpCanMsg MsgOut;
+  struct can_frame frame;
 
-  memset(&MsgOut, 0, sizeof(MsgOut));
-  MsgOut.tuMsgId.uwStd = CAN_CONTROL;
-  MsgOut.ubMsgDLC = 8;
-  MsgOut.tuMsgData.aubByte[0] = (_U08)(0xff);
-  MsgOut.tuMsgData.aubByte[1] = (_U08)(0x02);
-  MsgOut.tuMsgData.aubByte[2] = 0;
-  MsgOut.tuMsgData.aubByte[3] = 0;
-  MsgOut.tuMsgData.aubByte[4] = 0;
-  MsgOut.tuMsgData.aubByte[5] = 0;
-  MsgOut.tuMsgData.aubByte[6] = 0;
-  MsgOut.tuMsgData.aubByte[7] = 0;
+  frame.can_id = CAN_CONTROL;
+  frame.can_dlc = 8;
+  frame.data[0] = (_U08)(0xff);
+  frame.data[1] = (_U08)(0x02);
+  frame.data[2] = 0;
+  frame.data[3] = 0;
+  frame.data[4] = 0;
+  frame.data[5] = 0;
+  frame.data[6] = 0;
+  frame.data[7] = 0;
 
   uwTrmCntT = 1;
-  //send
+  send_frame(frame);
 
   return(NULL);
 }
 
 char *can_rotunit_send(int speed) {
-  _TsCpCanMsg MsgOut;
+  struct can_frame frame;
 
-  memset(&MsgOut, 0, sizeof(MsgOut));
-  MsgOut.tuMsgId.uwStd = 0x80;
-  MsgOut.ubMsgDLC = 8;
-  MsgOut.tuMsgData.aubByte[0] = (_U08)(speed >> 8); //high
-  MsgOut.tuMsgData.aubByte[1] = (_U08)(speed & 0xFF); //low
-  MsgOut.tuMsgData.aubByte[2] = 0;
-  MsgOut.tuMsgData.aubByte[3] = 0;
-  MsgOut.tuMsgData.aubByte[4] = 0;
-  MsgOut.tuMsgData.aubByte[5] = 0;
-  MsgOut.tuMsgData.aubByte[6] = 0;
-  MsgOut.tuMsgData.aubByte[7] = 0;
+  frame.can_id = 0x80;
+  frame.can_dlc = 8;
+  frame.data[0] = (_U08)(speed >> 8); //high
+  frame.data[1] = (_U08)(speed & 0xFF); //low
+  frame.data[2] = 0;
+  frame.data[3] = 0;
+  frame.data[4] = 0;
+  frame.data[5] = 0;
+  frame.data[6] = 0;
+  frame.data[7] = 0;
 
   uwTrmCntT = 1;
-  //send
+  send_frame(frame);
 
   return(NULL);
 }
@@ -630,9 +660,3 @@ char *can_time(unsigned long *time) {
   *time = 0;
   return(NULL);
 }
-
-
-
-
-
-
