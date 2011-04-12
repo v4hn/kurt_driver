@@ -14,7 +14,9 @@
 
 #include "kurt2socketcan.h"
 
-#define VERSION 0 
+#define VERSION        0 
+
+#define ERRORSOURCE    kurt2socketcan
 
 #define CAN_CONTROL    0x00000001 // control message
 
@@ -92,7 +94,9 @@ int cansocket; // can raw socket
 char *send_frame(can_frame *frame) {
   int nbytes;
   if ((nbytes = write(cansocket, frame, sizeof(frame))) != sizeof(frame)) {                             
-    perror("kurt2socketcan: error writing socket.");
+    //perror("ERRORSOURCE: error writing socket");
+    perror("ERRORSOURCE: error writing socket");
+    cout << "asd" << endl;
     //TODO return(1);
   }
   return(0);
