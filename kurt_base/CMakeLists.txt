@@ -29,5 +29,5 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #rosbuild_add_executable(example examples/example.cpp)
 #target_link_libraries(example ${PROJECT_NAME})
 
-rosbuild_add_executable(kurt_base src/kurt_base.cc src/canpie/cpuser_sock.cc src/kurt2can.cc)
-rosbuild_add_executable(rotunit_state_publisher src/rotunit_state_publisher.cpp src/canpie/cpuser_sock.cc src/kurt2can.cc)
+rosbuild_add_executable(kurt_base src/kurt_base.cc src/kurt2socketcan.cc)
+#rosbuild_add_executable(rotunit_state_publisher src/rotunit_state_publisher.cpp src/canpie/cpuser_sock.cc src/kurt2can.cc)
