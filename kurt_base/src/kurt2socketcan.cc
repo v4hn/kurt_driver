@@ -510,7 +510,7 @@ char *can_encoder(long *left, long *right, int *nr_msg) {
   *right = right_encoder;
   *nr_msg = nr_encoder_msg;
   left_encoder = right_encoder = 0;
-  nr_encoder_msg = 0;
+  nr_encoder_msg = 1; //TODO korrigieren
 
   return(0);
 }
