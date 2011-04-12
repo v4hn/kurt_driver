@@ -93,10 +93,12 @@ int cansocket; // can raw socket
 
 char *send_frame(can_frame *frame) {
   int nbytes;
+  char output[1024];
   if ((nbytes = write(cansocket, frame, sizeof(frame))) != sizeof(frame)) {                             
     //perror("ERRORSOURCE: error writing socket");
     perror("ERRORSOURCE: error writing socket");
-    cout << "asd" << endl;
+    sprintf(output, "cansocket: %u \n frame: %u", cansocket, frame); 
+    perror(output);
     //TODO return(1);
   }
   return(0);
@@ -512,9 +514,9 @@ char *can_encoder(long *left, long *right, int *nr_msg) {
 
   *left = left_encoder;
   *right = right_encoder;
-  *nr_msg = nr_encoder_msg;
+  *nr_msg = 1; //nr_encoder_msg; TODO correct
   left_encoder = right_encoder = 0;
-  nr_encoder_msg = 1; //TODO korrigieren
+  nr_encoder_msg = 0;
 
   return(0);
 }
