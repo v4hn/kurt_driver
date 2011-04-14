@@ -6,15 +6,15 @@
 #include <unistd.h>
 #include <math.h>
 
-#include <net/if.h>                                          
-#include <sys/ioctl.h>                                       
+#include <net/if.h>
+#include <sys/ioctl.h>
 
-#include <linux/can.h>                                       
-#include <linux/can/raw.h>  
+#include <linux/can.h>
+#include <linux/can/raw.h>
 
 #include "kurt2socketcan.h"
 
-#define VERSION        0 
+#define VERSION        0
 
 #define ERRORSOURCE    kurt2socketcan
 
@@ -38,7 +38,7 @@
 #define CAN_ENCODER    0x00000009 // 2 motor encoders
 #define CAN_BUMPERC    0x0000000A // bumpers and remote control
 #define CAN_DEADRECK   0x0000000B // position (dead reckoning)
-#define CAN_GETSPEED   0x0000000C // current transl. and rot. speed 
+#define CAN_GETSPEED   0x0000000C // current transl. and rot. speed
 #define CAN_GETROTUNIT 0x00000010 // current rotunit angle
 
 #define RAW            0          // raw control mode
@@ -57,7 +57,7 @@ char error_text[64];
 
 unsigned char info_1[8];
 unsigned char info_2[8];
-unsigned char adc00_03[8], adc04_07[8], adc08_11[8], adc12_15[8]; 
+unsigned char adc00_03[8], adc04_07[8], adc08_11[8], adc12_15[8];
 unsigned char bdc00_03[8], bdc04_07[8], bdc08_11[8], bdc12_15[8];
 unsigned char encoder[8];
 unsigned char bumperc[8];
@@ -78,8 +78,8 @@ int left_encoder = 0, right_encoder = 0;
 // msg number
 int  nr_encoder_msg = 0;
 
-unsigned short           uwRcvCntT;   
-unsigned short           uwTrmCntT;   
+unsigned short           uwRcvCntT;
+unsigned short           uwTrmCntT;
 unsigned long           ulFrameCntT;
 
 // SocketCan specific variables
@@ -91,8 +91,17 @@ int cansocket; // can raw socket
    }
    */
 
-//char *send_frame(can_frame *frame) {
-char *send_frame() {
+char *send_frame(can_frame *frame1) {
+
+  int left_pwm = 100;
+  char left_dir = 0;
+  char left_brake = 0;
+  int right_pwm = 100;
+  char right_dir = 0;
+  char right_brake = 0;
+  char left_dir_brake =  (left_dir << 1) + left_brake;
+  char right_dir_brake = (right_dir << 1) + right_brake;
+  int i;
 
   struct can_frame frame;
   frame.can_id = 1;
@@ -108,9 +117,9 @@ char *send_frame() {
 
   int nbytes;
   char output[1024];
-  if ((nbytes = write(cansocket, frame, sizeof(frame))) != sizeof(frame)) {                             
+  if ((nbytes = write(cansocket, &frame, sizeof(frame))) != sizeof(frame)) {
     perror("ERRORSOURCE: error writing socket");
-    sprintf(output, "cansocket: %u \nframe: %u", cansocket, frame); 
+    sprintf(output, "cansocket: %u \nframe: %u", cansocket, frame);
     perror(output);
     //TODO return(1);
   }
@@ -126,13 +135,13 @@ char *can_init(int *version) {
   *version = VERSION;
 
   // initializing socketcan
-  struct sockaddr_can addr;                                                                      
+  struct sockaddr_can addr;
   struct ifreq ifr;
   char *caninterface = "can0"; //TODO automatic searching for caninterface
   int i;
 
   /* open socket */
-  cansocket = socket(PF_CAN, SOCK_RAW, CAN_RAW); 
+  cansocket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
   if (cansocket < 0) {
     perror("kurt2socketcan: error opening socket.");
     //TODO return 1;
@@ -393,7 +402,7 @@ char *can_rotunit_send(int speed) {
   return(0);
 }
 
-char *can_sonar0_3(int *sonar0, int *sonar1, int *sonar2, int *sonar3, 
+char *can_sonar0_3(int *sonar0, int *sonar1, int *sonar2, int *sonar3,
     unsigned long *time) {
   /*
      if (can_read_fifo()) {
@@ -408,7 +417,7 @@ char *can_sonar0_3(int *sonar0, int *sonar1, int *sonar2, int *sonar3,
   return(0);
 }
 
-char *can_sonar4_7(int *sonar4, int *sonar5, int *sonar6, int *sonar7, 
+char *can_sonar4_7(int *sonar4, int *sonar5, int *sonar6, int *sonar7,
     unsigned long *time) {
   /*
      if (can_read_fifo()) {
@@ -474,7 +483,7 @@ char *can_tilt_comp(double *tilt0, double *tilt1, int *comp1, int *comp2,
   a1 = ((double)t1 - 32768.0) / 3932.0;
 
   *tilt0 = asin(a0);	// calculate angles and convert do deg
-  *tilt1 = asin(a1);	
+  *tilt1 = asin(a1);
 
   *time = 0;
   return(0);
@@ -553,7 +562,7 @@ char *can_bumper(char *value, unsigned long *time) {
   return(0);
 }
 
-char *can_adc2nd0_3(int *adc2nd0, int *adc2nd1, int *adc2nd2, int *adc2nd3, 
+char *can_adc2nd0_3(int *adc2nd0, int *adc2nd1, int *adc2nd2, int *adc2nd3,
     unsigned long *time) {
   if (can_read_fifo()) {
     return(error_text);
@@ -566,7 +575,7 @@ char *can_adc2nd0_3(int *adc2nd0, int *adc2nd1, int *adc2nd2, int *adc2nd3,
   return(0);
 }
 
-char *can_adc2nd4_7(int *adc2nd4, int *adc2nd5, int *adc2nd6, int *adc2nd7, 
+char *can_adc2nd4_7(int *adc2nd4, int *adc2nd5, int *adc2nd6, int *adc2nd7,
     unsigned long *time) {
   if (can_read_fifo()) {
     return(error_text);
@@ -579,7 +588,7 @@ char *can_adc2nd4_7(int *adc2nd4, int *adc2nd5, int *adc2nd6, int *adc2nd7,
   return(0);
 }
 
-char *can_adc2nd8_11(int *adc2nd8, int *adc2nd9, int *adc2nd10, int *adc2nd11, 
+char *can_adc2nd8_11(int *adc2nd8, int *adc2nd9, int *adc2nd10, int *adc2nd11,
     unsigned long *time) {
   if (can_read_fifo()) {
     return(error_text);
@@ -592,7 +601,7 @@ char *can_adc2nd8_11(int *adc2nd8, int *adc2nd9, int *adc2nd10, int *adc2nd11,
   return(0);
 }
 
-char *can_adc2nd12_15(int *adc2nd12, int *adc2nd13, int *adc2nd14, int *adc2nd15, 
+char *can_adc2nd12_15(int *adc2nd12, int *adc2nd13, int *adc2nd14, int *adc2nd15,
     unsigned long *time) {
   if (can_read_fifo()) {
     return(error_text);
