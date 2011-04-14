@@ -513,7 +513,7 @@ char *can_encoder(long *left, long *right, int *nr_msg) {
 
   *left = left_encoder;
   *right = right_encoder;
-  *nr_msg = nr_encoder_msg;
+  *nr_msg = 1;//nr_encoder_msg; TODO REVERT HACK
   left_encoder = right_encoder = 0;
   nr_encoder_msg = 0;
 
