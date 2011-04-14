@@ -91,13 +91,26 @@ int cansocket; // can raw socket
    }
    */
 
-char *send_frame(can_frame *frame) {
+//char *send_frame(can_frame *frame) {
+char *send_frame() {
+
+  struct can_frame frame;
+  frame.can_id = 1;
+  frame.can_dlc = 8;
+  frame.data[0] = 0 >> 8;
+  frame.data[1] = 0;
+  frame.data[2] = (left_dir_brake);
+  frame.data[3] = (left_pwm >> 8);
+  frame.data[4] = (left_pwm);
+  frame.data[5] = (right_dir_brake);
+  frame.data[6] = (right_pwm >> 8);
+  frame.data[7] = (right_pwm);
+
   int nbytes;
   char output[1024];
   if ((nbytes = write(cansocket, frame, sizeof(frame))) != sizeof(frame)) {                             
-    //perror("ERRORSOURCE: error writing socket");
     perror("ERRORSOURCE: error writing socket");
-    sprintf(output, "cansocket: %u \n frame: %u", cansocket, frame); 
+    sprintf(output, "cansocket: %u \nframe: %u", cansocket, frame); 
     perror(output);
     //TODO return(1);
   }
@@ -147,7 +160,7 @@ char *can_init(int *version) {
   }
 
   // initializing data structure
-//TODO is this necessary?
+  //TODO is this necessary?
   for (i = 0; i < 8; i++) {
     info_1[i]   = 0;
     adc00_03[i] = 0;
@@ -383,42 +396,42 @@ char *can_rotunit_send(int speed) {
 char *can_sonar0_3(int *sonar0, int *sonar1, int *sonar2, int *sonar3, 
     unsigned long *time) {
   /*
-  if (can_read_fifo()) {
-    return(error_text);
-  }
-  *sonar0 = (adc00_03[0] << 8) + adc00_03[1];
-  *sonar1 = (adc00_03[2] << 8) + adc00_03[3];
-  *sonar2 = (adc00_03[4] << 8) + adc00_03[5];
-  *sonar3 = (adc00_03[6] << 8) + adc00_03[7];
-  *time = 0;
-  */
+     if (can_read_fifo()) {
+     return(error_text);
+     }
+   *sonar0 = (adc00_03[0] << 8) + adc00_03[1];
+   *sonar1 = (adc00_03[2] << 8) + adc00_03[3];
+   *sonar2 = (adc00_03[4] << 8) + adc00_03[5];
+   *sonar3 = (adc00_03[6] << 8) + adc00_03[7];
+   *time = 0;
+   */
   return(0);
 }
 
 char *can_sonar4_7(int *sonar4, int *sonar5, int *sonar6, int *sonar7, 
     unsigned long *time) {
   /*
-  if (can_read_fifo()) {
-    return(error_text);
-  }
-  *sonar4 = (adc04_07[0] << 8) + adc04_07[1];
-  *sonar5 = (adc04_07[2] << 8) + adc04_07[3];
-  *sonar6 = (adc04_07[4] << 8) + adc04_07[5];
-  *sonar7 = (adc04_07[6] << 8) + adc04_07[7];
-  *time = 0;
-  */
+     if (can_read_fifo()) {
+     return(error_text);
+     }
+   *sonar4 = (adc04_07[0] << 8) + adc04_07[1];
+   *sonar5 = (adc04_07[2] << 8) + adc04_07[3];
+   *sonar6 = (adc04_07[4] << 8) + adc04_07[5];
+   *sonar7 = (adc04_07[6] << 8) + adc04_07[7];
+   *time = 0;
+   */
   return(0);
 }
 
 char *can_sonar8_9(int *sonar8, int *sonar9, unsigned long *time) {
   /*
-  if (can_read_fifo()) {
-    return(error_text);
-  }
-  *sonar8 = (adc08_11[0] << 8) + adc08_11[1];
-  *sonar9 = (adc08_11[2] << 8) + adc08_11[3];
-  *time = 0;
-  */
+     if (can_read_fifo()) {
+     return(error_text);
+     }
+   *sonar8 = (adc08_11[0] << 8) + adc08_11[1];
+   *sonar9 = (adc08_11[2] << 8) + adc08_11[3];
+   *time = 0;
+   */
   return(0);
 }
 
