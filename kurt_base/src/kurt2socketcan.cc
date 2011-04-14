@@ -16,8 +16,6 @@
 
 #define VERSION        0
 
-#define ERRORSOURCE    kurt2socketcan
-
 #define CAN_CONTROL    0x00000001 // control message
 
 #define CAN_INFO_1     0x00000004 // info message
@@ -95,8 +93,9 @@ char *send_frame(can_frame *frame) {
 
   int nbytes;
   char output[1024];
-  if ((nbytes = write(cansocket, &frame, sizeof(frame))) != sizeof(frame)) {
-    perror("ERRORSOURCE: error writing socket");
+  //if ((nbytes = write(cansocket, &frame, sizeof(frame))) != sizeof(frame)) {
+  if ((nbytes = write(cansocket, frame, sizeof(*frame))) != sizeof(*frame)) {
+    perror("kurt2socketcan: error writing socket");
     sprintf(output, "cansocket: %u \nframe: %u", cansocket, frame);
     perror(output);
     //TODO return(1);
