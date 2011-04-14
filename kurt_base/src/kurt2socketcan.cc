@@ -50,24 +50,24 @@
 #define C_FACTOR       10000      // correction factor needed for gyro_sigma
 
 
-unsigned char frc; // function return code
+__u8 frc; // function return code
 char error_text[64];
 
-unsigned char info_1[8];
-unsigned char info_2[8];
-unsigned char adc00_03[8], adc04_07[8], adc08_11[8], adc12_15[8];
-unsigned char bdc00_03[8], bdc04_07[8], bdc08_11[8], bdc12_15[8];
-unsigned char encoder[8];
-unsigned char bumperc[8];
-unsigned char rec_tilt_comp[8];
-unsigned char rec_gyro_mc1[8];
-unsigned char rec_gyro_mc2[8];
-unsigned char rec_deadreck[8];
-unsigned char rec_getspeed[8];
-unsigned char rec_getrotunit[8];
+__u8 info_1[8];
+__u8 info_2[8];
+__u8 adc00_03[8], adc04_07[8], adc08_11[8], adc12_15[8];
+__u8 bdc00_03[8], bdc04_07[8], bdc08_11[8], bdc12_15[8];
+__u8 encoder[8];
+__u8 bumperc[8];
+__u8 rec_tilt_comp[8];
+__u8 rec_gyro_mc1[8];
+__u8 rec_gyro_mc2[8];
+__u8 rec_deadreck[8];
+__u8 rec_getspeed[8];
+__u8 rec_getrotunit[8];
 
 // receive OptiScan messages
-unsigned char oscmdr[8], osresr[8];
+__u8 oscmdr[8], osresr[8];
 
 SENSOR_STATE kurt2_state;
 
@@ -76,9 +76,9 @@ int left_encoder = 0, right_encoder = 0;
 // msg number
 int  nr_encoder_msg = 0;
 
-unsigned short           uwRcvCntT;
-unsigned short           uwTrmCntT;
-unsigned long           ulFrameCntT;
+__u16           uwRcvCntT;
+__u16           uwTrmCntT;
+__u32           ulFrameCntT;
 
 // SocketCan specific variables
 int cansocket; // can raw socket
@@ -92,12 +92,8 @@ int cansocket; // can raw socket
 char *send_frame(can_frame *frame) {
 
   int nbytes;
-  char output[1024];
-  //if ((nbytes = write(cansocket, &frame, sizeof(frame))) != sizeof(frame)) {
   if ((nbytes = write(cansocket, frame, sizeof(*frame))) != sizeof(*frame)) {
     perror("kurt2socketcan: error writing socket");
-    sprintf(output, "cansocket: %u \nframe: %u", cansocket, frame);
-    perror(output);
     //TODO return(1);
   }
   return(0);
@@ -114,13 +110,13 @@ char *can_init(int *version) {
   // initializing socketcan
   struct sockaddr_can addr;
   struct ifreq ifr;
-  char *caninterface = "can0"; //TODO automatic searching for caninterface
+  char caninterface[] = "can0"; //TODO automatic searching for caninterface
   int i;
 
   /* open socket */
   cansocket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
   if (cansocket < 0) {
-    perror("kurt2socketcan: error opening socket.");
+    perror("kurt2socketcan: error opening socket");
     //TODO return 1;
   }
 
@@ -128,7 +124,7 @@ char *can_init(int *version) {
 
   strcpy(ifr.ifr_name, caninterface);
   if (ioctl(cansocket, SIOCGIFINDEX, &ifr) < 0) {
-    perror("kurt2socketcan: SIOCGIFINDEX.");
+    perror("kurt2socketcan: SIOCGIFINDEX");
     perror(caninterface);
     //TODO return 1;
   }
@@ -141,7 +137,7 @@ char *can_init(int *version) {
   // setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, 0, 0);
 
   if (bind(cansocket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    perror("kurt2socketcan: error binding socket.");
+    perror("kurt2socketcan: error binding socket");
     //TODO return 1;
   }
 
@@ -194,12 +190,12 @@ char *can_motor(int left_pwm,  char left_dir,  char left_brake,
   frame.can_dlc = 8;
   frame.data[0] = RAW >> 8;
   frame.data[1] = RAW;
-  frame.data[2] = (unsigned char)(left_dir_brake);
-  frame.data[3] = (unsigned char)(left_pwm >> 8);
-  frame.data[4] = (unsigned char)(left_pwm);
-  frame.data[5] = (unsigned char)(right_dir_brake);
-  frame.data[6] = (unsigned char)(right_pwm >> 8);
-  frame.data[7] = (unsigned char)(right_pwm);
+  frame.data[2] = (left_dir_brake);
+  frame.data[3] = (left_pwm >> 8);
+  frame.data[4] = (left_pwm);
+  frame.data[5] = (right_dir_brake);
+  frame.data[6] = (right_pwm >> 8);
+  frame.data[7] = (right_pwm);
 
   uwTrmCntT = 1;
   send_frame(&frame);
@@ -263,8 +259,8 @@ char *can_float(int mode, float f1, float f2) {
 
   frame.can_id = CAN_CONTROL;
   frame.can_dlc = 8;
-  frame.data[0] = (unsigned char)(mode >> 8);
-  frame.data[1] = (unsigned char)mode;
+  frame.data[0] = (mode >> 8);
+  frame.data[1] = mode;
   frame.data[2] = l1 >> 24;
   frame.data[3] = l1 >> 16;
   frame.data[4] = l1 >>  8;
@@ -283,8 +279,8 @@ char *can_mc_reset() {
 
   frame.can_id = CAN_CONTROL;
   frame.can_dlc = 8;
-  frame.data[0] = (unsigned char)(MC_RESET >> 8);
-  frame.data[1] = (unsigned char)MC_RESET;
+  frame.data[0] = (MC_RESET >> 8);
+  frame.data[1] = MC_RESET;
   frame.data[2] = 0;
   frame.data[3] = 0;
   frame.data[4] = 0;
@@ -293,6 +289,8 @@ char *can_mc_reset() {
   frame.data[7] = 0;
 
   uwTrmCntT = 1;
+
+  // necessary to do this twice?
   send_frame(&frame);
   send_frame(&frame);
 
@@ -304,8 +302,8 @@ char *can_gyro_calibrate() {
 
   frame.can_id = CAN_CONTROL;
   frame.can_dlc = 8;
-  frame.data[0] = (unsigned char)(0xff);
-  frame.data[1] = (unsigned char)(0x02);
+  frame.data[0] = (0xff);
+  frame.data[1] = (0x02);
   frame.data[2] = 0;
   frame.data[3] = 0;
   frame.data[4] = 0;
@@ -324,8 +322,8 @@ char *can_gyro_reset() {
 
   frame.can_id = CAN_CONTROL;
   frame.can_dlc = 8;
-  frame.data[0] = (unsigned char)(0xff);
-  frame.data[1] = (unsigned char)(0x03);
+  frame.data[0] = (0xff);
+  frame.data[1] = (0x03);
   frame.data[2] = 0;
   frame.data[3] = 0;
   frame.data[4] = 0;
@@ -344,8 +342,8 @@ char *can_ssc_reset() {
 
   frame.can_id = CAN_CONTROL;
   frame.can_dlc = 8;
-  frame.data[0] = (unsigned char)(0xff);
-  frame.data[1] = (unsigned char)(0x02);
+  frame.data[0] = (0xff);
+  frame.data[1] = (0x02);
   frame.data[2] = 0;
   frame.data[3] = 0;
   frame.data[4] = 0;
@@ -364,8 +362,8 @@ char *can_rotunit_send(int speed) {
 
   frame.can_id = 0x80;
   frame.can_dlc = 8;
-  frame.data[0] = (unsigned char)(speed >> 8); //high
-  frame.data[1] = (unsigned char)(speed & 0xFF); //low
+  frame.data[0] = (speed >> 8); //high
+  frame.data[1] = (speed & 0xFF); //low
   frame.data[2] = 0;
   frame.data[3] = 0;
   frame.data[4] = 0;
@@ -381,47 +379,48 @@ char *can_rotunit_send(int speed) {
 
 char *can_sonar0_3(int *sonar0, int *sonar1, int *sonar2, int *sonar3,
     unsigned long *time) {
-  /*
-     if (can_read_fifo()) {
-     return(error_text);
-     }
-   *sonar0 = (adc00_03[0] << 8) + adc00_03[1];
-   *sonar1 = (adc00_03[2] << 8) + adc00_03[3];
-   *sonar2 = (adc00_03[4] << 8) + adc00_03[5];
-   *sonar3 = (adc00_03[6] << 8) + adc00_03[7];
-   *time = 0;
-   */
+
+  if (can_read_fifo()) {
+    return(error_text);
+  }
+  *sonar0 = (adc00_03[0] << 8) + adc00_03[1];
+  *sonar1 = (adc00_03[2] << 8) + adc00_03[3];
+  *sonar2 = (adc00_03[4] << 8) + adc00_03[5];
+  *sonar3 = (adc00_03[6] << 8) + adc00_03[7];
+  *time = 0;
+
   return(0);
 }
 
 char *can_sonar4_7(int *sonar4, int *sonar5, int *sonar6, int *sonar7,
     unsigned long *time) {
-  /*
-     if (can_read_fifo()) {
-     return(error_text);
-     }
-   *sonar4 = (adc04_07[0] << 8) + adc04_07[1];
-   *sonar5 = (adc04_07[2] << 8) + adc04_07[3];
-   *sonar6 = (adc04_07[4] << 8) + adc04_07[5];
-   *sonar7 = (adc04_07[6] << 8) + adc04_07[7];
-   *time = 0;
-   */
+
+  if (can_read_fifo()) {
+    return(error_text);
+  }
+  *sonar4 = (adc04_07[0] << 8) + adc04_07[1];
+  *sonar5 = (adc04_07[2] << 8) + adc04_07[3];
+  *sonar6 = (adc04_07[4] << 8) + adc04_07[5];
+  *sonar7 = (adc04_07[6] << 8) + adc04_07[7];
+  *time = 0;
+
   return(0);
 }
 
 char *can_sonar8_9(int *sonar8, int *sonar9, unsigned long *time) {
-  /*
-     if (can_read_fifo()) {
-     return(error_text);
-     }
-   *sonar8 = (adc08_11[0] << 8) + adc08_11[1];
-   *sonar9 = (adc08_11[2] << 8) + adc08_11[3];
-   *time = 0;
-   */
+
+  if (can_read_fifo()) {
+    return(error_text);
+  }
+  *sonar8 = (adc08_11[0] << 8) + adc08_11[1];
+  *sonar9 = (adc08_11[2] << 8) + adc08_11[3];
+  *time = 0;
+
   return(0);
 }
 
 char *can_tilt(int *tilt0, int *tilt1, unsigned long *time) {
+
   if (can_read_fifo()) {
     return(error_text);
   }
@@ -456,7 +455,8 @@ char *can_tilt_comp(double *tilt0, double *tilt1, int *comp1, int *comp2,
   *comp2 = (rec_tilt_comp[6] << 8) + rec_tilt_comp[7];
 
 
-  a0 = ((double)t0 - 32768.0) / 3932.0;	// calculate g values (offset and sensitivity correction)
+  // calculate g values (offset and sensitivity correction)
+  a0 = ((double)t0 - 32768.0) / 3932.0;
   a1 = ((double)t1 - 32768.0) / 3932.0;
 
   *tilt0 = asin(a0);	// calculate angles and convert do deg
@@ -513,7 +513,7 @@ char *can_encoder(long *left, long *right, int *nr_msg) {
 
   *left = left_encoder;
   *right = right_encoder;
-  *nr_msg = 1; //nr_encoder_msg; TODO correct
+  *nr_msg = nr_encoder_msg;
   left_encoder = right_encoder = 0;
   nr_encoder_msg = 0;
 
