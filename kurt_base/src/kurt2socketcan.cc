@@ -91,29 +91,7 @@ int cansocket; // can raw socket
    }
    */
 
-char *send_frame(can_frame *frame1) {
-
-  int left_pwm = 100;
-  char left_dir = 0;
-  char left_brake = 0;
-  int right_pwm = 100;
-  char right_dir = 0;
-  char right_brake = 0;
-  char left_dir_brake =  (left_dir << 1) + left_brake;
-  char right_dir_brake = (right_dir << 1) + right_brake;
-  int i;
-
-  struct can_frame frame;
-  frame.can_id = 1;
-  frame.can_dlc = 8;
-  frame.data[0] = 0 >> 8;
-  frame.data[1] = 0;
-  frame.data[2] = (left_dir_brake);
-  frame.data[3] = (left_pwm >> 8);
-  frame.data[4] = (left_pwm);
-  frame.data[5] = (right_dir_brake);
-  frame.data[6] = (right_pwm >> 8);
-  frame.data[7] = (right_pwm);
+char *send_frame(can_frame *frame) {
 
   int nbytes;
   char output[1024];
