@@ -49,6 +49,9 @@
 #define CAN_GYRO_MC2   0x0000001E // data from gyro connected to 2nd C167
 #define C_FACTOR       10000      // correction factor needed for gyro_sigma
 
+enum errors {
+  FIFO_EMPTY = 20
+};
 
 __u8 frc; // function return code
 char error_text[64];
@@ -99,7 +102,22 @@ char *send_frame(can_frame *frame) {
   return(0);
 }
 
+char *receive_frame(can_frame *frame) {
+  int nbytes;
+  nbytes = read(cansocket, frame, sizeof(*frame));
+  //perror("kurt2socketcan: error reading socket");
+  //TODO return(1);
+  char output[1024];
+  sprintf(output, "nbytes=%d", nbytes);
+  return(0);
+}
+
 char *can_read_fifo(void) {
+  struct can_frame frame;
+  do {
+    receive_frame(&frame);
+  } while (frc != FIFO_EMPTY);
+
   return(0);
 }
 
