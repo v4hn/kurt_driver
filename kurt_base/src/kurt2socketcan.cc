@@ -109,6 +109,7 @@ char *receive_frame(can_frame *frame) {
   //TODO return(1);
   char output[1024];
   sprintf(output, "nbytes=%d", nbytes);
+  perror(output);
   return(0);
 }
 
