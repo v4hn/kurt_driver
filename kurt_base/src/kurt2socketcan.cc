@@ -109,14 +109,17 @@ char *receive_frame(can_frame *frame) {
   //TODO return(1);
   char output[1024];
   sprintf(output, "nbytes=%d", nbytes);
-  perror(output);
+  //perror(output);
   return(0);
 }
 
 char *can_read_fifo(void) {
   struct can_frame frame;
+    char output[1024];
   do {
     receive_frame(&frame);
+    sprintf(output, "dlc: %u\n", frame.can_dlc);
+    perror(output);
   } while (frc != FIFO_EMPTY);
 
   return(0);
