@@ -1,37 +1,5 @@
-#ifndef __KURT2CAN_H__
-#define __KURT2CAN_H__
-
-/*
- * The contents of this file are subject to the Mozilla Public
- * License Version 1.1 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of
- * the License at http://www.mozilla.org/MPL/
- *
- * Software distributed under the License is distributed on an "AS
- * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
- * implied. See the License for the specific language governing
- * rights and limitations under the License.
- *
- * The Original Code is KURT2 Open Source Firmware and Win32 Software,
- * released March 15, 2001.
- *
- * The Initial Developer of the Original Code is GMD National Research
- * Center for Information Technology.  Portions created by GMD are
- * Copyright (C) 2000 - 2001 GMD National Research Center for
- * Information Technology.  All Rights Reserved.
- *
- * As of July 11, 2001, GMD has been integrated into the Fraunhofer-
- * Gesellschaft. As the new legal entity, Fraunhofer-Gesellschaft has thus
- * taken over all legal relationships involving GMD. Portions created by 
- * Fraunhofer-Gesellschaft are Copyright (C) 2002 Fraunhofer-Gesellschaft.
- * All Rights Reserved.
- *
- * Contributor(s):
- */
-/******************************************************************************/
-/* KURT2CAN.H: KURT2's CAN interface                                          */
-/* $Id                                                                        */
-/******************************************************************************/
+#ifndef __KURT2SOCKET_H__
+#define __KURT2SOCKET_H__
 
 typedef struct {
   int sonar0, sonar1, sonar2, sonar3, sonar4, sonar5, sonar6, sonar7, sonar8, 
