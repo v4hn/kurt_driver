@@ -163,6 +163,8 @@ int main(int argc, char** argv)
     return 1;
   }
 
+  //TODO following is necessary to decide if chassi has power.
+  //but needs rewrite
   long wheel_a, wheel_b;
   int nr_msg;
   if(!k_read_wheel_encoder(&wheel_a, &wheel_b, &nr_msg)) {

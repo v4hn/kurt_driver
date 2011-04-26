@@ -47,10 +47,6 @@
 #define CAN_GYRO_MC2   0x0000001E // data from gyro connected to 2nd C167
 #define C_FACTOR       10000      // correction factor needed for gyro_sigma
 
-enum errors {
-  FIFO_EMPTY = 20
-};
-
 __u8 frc; // function return code
 char error_text[64];
 
@@ -91,7 +87,6 @@ int cansocket; // can raw socket
    */
 
 char *send_frame(can_frame *frame) {
-
   int nbytes;
   if ((nbytes = write(cansocket, frame, sizeof(*frame))) != sizeof(*frame)) {
     perror("kurt2socketcan: error writing socket");
@@ -102,16 +97,11 @@ char *send_frame(can_frame *frame) {
 
 char *receive_frame(can_frame *frame) {
   int nbytes;
-
-  nbytes = read(cansocket, frame, sizeof(*frame));
-  //perror("kurt2socketcan: error reading socket");
-  //TODO return(1);
-  
-  /*
-  char output[1024];
-  sprintf(output, "%d %d", nbytes, sizeof(*frame));
-  if (nbytes < 0) perror(output);
-  */
+  if ((nbytes = read(cansocket, frame, sizeof(*frame))) != sizeof(*frame)) {
+    perror("kurt2socketcan: error reading socket");
+    //TODO return(1);
+  }
+  perror("received.");
   return(0);
 }
 
@@ -119,122 +109,122 @@ char *can_read_fifo(void) {
   struct can_frame frame;
   int i;
   char output[1024];
-  //do {
-    receive_frame(&frame);
 
-    switch (frame.can_id) {
-      case CAN_CONTROL:
-        break;
-      case CAN_INFO_1:
-        for (i = 0; i < frame.can_dlc; i++) {
-          info_1[i] = frame.data[i];
-        }
-        break;
-      case CAN_ADC00_03:
-        for (i = 0; i < frame.can_dlc; i++) {
-          adc00_03[i] = frame.data[i];
-        }
-        break;
-      case CAN_ADC04_07:
-        for (i = 0; i < frame.can_dlc; i++) {
-          adc04_07[i] = frame.data[i];
-        }
-        break;
-      case CAN_ADC08_11:
-        for (i = 0; i < frame.can_dlc; i++) {
-          adc08_11[i] = frame.data[i];
-        }
-        break;
-      case CAN_ADC12_15:
-        for (i = 0; i < frame.can_dlc; i++) {
-          adc12_15[i] = frame.data[i];
-        }
-        break;
-      case CAN_ENCODER:
-        for (i = 0; i < frame.can_dlc; i++) {
-          encoder[i] = frame.data[i];
-        }
-        nr_encoder_msg++;
-        if (encoder[0] & 0x80) // negative Zahl auf 15 Bit genau
-          left_encoder += (encoder[0] << 8) + encoder[1]-65536;
-        else
-          left_encoder += (encoder[0] << 8) + encoder[1];
-        if (encoder[2] & 0x80) // negative Zahl auf 15 Bit genau
-          right_encoder += (encoder[2] << 8) + encoder[3]-65536;
-        else
-          right_encoder += (encoder[2] << 8) + encoder[3];
-        /*
-           printf("--- %ld %ld %d %d %d %d\n", left_encoder, right_encoder,
-           encoder[0],
-           encoder[1],
-           encoder[2],
-           encoder[3]);
-           */
-        //	   fflush(stdout);
-        break;
-      case CAN_BUMPERC:
-        for (i = 0; i < frame.can_dlc; i++) {
-          bumperc[i] = frame.data[i];
-        }
-        break;
-      case CAN_BDC00_03:
-        for (i = 0; i < frame.can_dlc; i++) {
-          bdc00_03[i] = frame.data[i];
-        }
-        break;
-      case CAN_BDC04_07:
-        for (i = 0; i < frame.can_dlc; i++) {
-          bdc04_07[i] = frame.data[i];
-        }
-        break;
-      case CAN_BDC08_11:
-        for (i = 0; i < frame.can_dlc; i++) {
-          bdc08_11[i] = frame.data[i];
-        }
-        break;
-      case CAN_BDC12_15:
-        for (i = 0; i < frame.can_dlc; i++) {
-          bdc12_15[i] = frame.data[i];
-        }
-        break;
-      case CAN_TILT_COMP:
-        // printf("-");
-        for (i = 0; i < frame.can_dlc; i++) {
-          rec_tilt_comp[i] = frame.data[i];
-        }
-        break;
-      case CAN_GYRO_MC1:
-        //	 printf("CAN_GYRO_MC1");
-        for (i = 0; i < frame.can_dlc; i++) {
-          rec_gyro_mc1[i] = frame.data[i];
-          //	 printf("%d \n",rec_gyro_mc1[i]);  
-        }
-        break;
-      case CAN_GYRO_MC2:
-        for (i = 0; i < frame.can_dlc; i++) {
-          rec_gyro_mc2[i] = frame.data[i];
-        }
-        break;
-      case CAN_DEADRECK:
-        for (i = 0; i < frame.can_dlc; i++) {
-          rec_deadreck[i] = frame.data[i];
-        }
-        break;
-      case CAN_GETSPEED:
-        for (i = 0; i < frame.can_dlc; i++) {
-          rec_getspeed[i] = frame.data[i];
-        }
-        break;
-      case CAN_GETROTUNIT:
-        for (i = 0; i < frame.can_dlc; i++) {
-          rec_getrotunit[i] = frame.data[i];
-        }
-        break;
-      default:
-        //TODO sprintf(error_text, "Unknown CAN ID in can_read_fifo: %X", MsgId);
-        return(0);
-    }
-  //} while (frame.can_id != FIFO_EMPTY);
+  receive_frame(&frame);
+
+  switch (frame.can_id) {
+    case CAN_CONTROL:
+      break;
+    case CAN_INFO_1:
+      for (i = 0; i < frame.can_dlc; i++) {
+        info_1[i] = frame.data[i];
+      }
+      break;
+    case CAN_ADC00_03:
+      for (i = 0; i < frame.can_dlc; i++) {
+        adc00_03[i] = frame.data[i];
+      }
+      break;
+    case CAN_ADC04_07:
+      for (i = 0; i < frame.can_dlc; i++) {
+        adc04_07[i] = frame.data[i];
+      }
+      break;
+    case CAN_ADC08_11:
+      for (i = 0; i < frame.can_dlc; i++) {
+        adc08_11[i] = frame.data[i];
+      }
+      break;
+    case CAN_ADC12_15:
+      for (i = 0; i < frame.can_dlc; i++) {
+        adc12_15[i] = frame.data[i];
+      }
+      break;
+    case CAN_ENCODER:
+      for (i = 0; i < frame.can_dlc; i++) {
+        encoder[i] = frame.data[i];
+      }
+      nr_encoder_msg++;
+      if (encoder[0] & 0x80) // negative Zahl auf 15 Bit genau
+        left_encoder += (encoder[0] << 8) + encoder[1]-65536;
+      else
+        left_encoder += (encoder[0] << 8) + encoder[1];
+      if (encoder[2] & 0x80) // negative Zahl auf 15 Bit genau
+        right_encoder += (encoder[2] << 8) + encoder[3]-65536;
+      else
+        right_encoder += (encoder[2] << 8) + encoder[3];
+      /*
+         printf("--- %ld %ld %d %d %d %d\n", left_encoder, right_encoder,
+         encoder[0],
+         encoder[1],
+         encoder[2],
+         encoder[3]);
+         */
+      //	   fflush(stdout);
+      break;
+    case CAN_BUMPERC:
+      for (i = 0; i < frame.can_dlc; i++) {
+        bumperc[i] = frame.data[i];
+      }
+      break;
+    case CAN_BDC00_03:
+      for (i = 0; i < frame.can_dlc; i++) {
+        bdc00_03[i] = frame.data[i];
+      }
+      break;
+    case CAN_BDC04_07:
+      for (i = 0; i < frame.can_dlc; i++) {
+        bdc04_07[i] = frame.data[i];
+      }
+      break;
+    case CAN_BDC08_11:
+      for (i = 0; i < frame.can_dlc; i++) {
+        bdc08_11[i] = frame.data[i];
+      }
+      break;
+    case CAN_BDC12_15:
+      for (i = 0; i < frame.can_dlc; i++) {
+        bdc12_15[i] = frame.data[i];
+      }
+      break;
+    case CAN_TILT_COMP:
+      // printf("-");
+      for (i = 0; i < frame.can_dlc; i++) {
+        rec_tilt_comp[i] = frame.data[i];
+      }
+      break;
+    case CAN_GYRO_MC1:
+      //	 printf("CAN_GYRO_MC1");
+      for (i = 0; i < frame.can_dlc; i++) {
+        rec_gyro_mc1[i] = frame.data[i];
+        //	 printf("%d \n",rec_gyro_mc1[i]);  
+      }
+      break;
+    case CAN_GYRO_MC2:
+      for (i = 0; i < frame.can_dlc; i++) {
+        rec_gyro_mc2[i] = frame.data[i];
+      }
+      break;
+    case CAN_DEADRECK:
+      for (i = 0; i < frame.can_dlc; i++) {
+        rec_deadreck[i] = frame.data[i];
+      }
+      break;
+    case CAN_GETSPEED:
+      for (i = 0; i < frame.can_dlc; i++) {
+        rec_getspeed[i] = frame.data[i];
+      }
+      break;
+    case CAN_GETROTUNIT:
+      for (i = 0; i < frame.can_dlc; i++) {
+        rec_getrotunit[i] = frame.data[i];
+      }
+      break;
+    default:
+      //TODO sprintf(error_text, "Unknown CAN ID in can_read_fifo: %X", MsgId);
+      return(0);
+  }
+
   return(0);
 }
 
@@ -247,33 +237,26 @@ char *can_init(int *version) {
   struct ifreq ifr;
   char caninterface[] = "can0"; //TODO automatic searching for caninterface
   int i;
-
+  char err[1024];
   /* open socket */
   cansocket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
   if (cansocket < 0) {
-    perror("kurt2socketcan: error opening socket");
-    //TODO return 1;
+    sprintf(err, "kurt2socketcan: error opening socket");
+    return(err);
   }
 
   addr.can_family = AF_CAN;
 
   strcpy(ifr.ifr_name, caninterface);
   if (ioctl(cansocket, SIOCGIFINDEX, &ifr) < 0) {
-    perror("kurt2socketcan: SIOCGIFINDEX");
-    perror(caninterface);
-    //TODO return 1;
+    sprintf(err, "kurt2socketcan: SIOCGIFINDEX %d", caninterface);
+    return(err);
   }
   addr.can_ifindex = ifr.ifr_ifindex;
 
-  /* disable default receive filter on this RAW socket */
-  /* This is obsolete as we do not read from the socket at all, but for */
-  /* this reason we can remove the receive list in the Kernel to save a */
-  /* little (really a very little!) CPU usage.                          */
-  // setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, 0, 0);
-
   if (bind(cansocket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    perror("kurt2socketcan: error binding socket");
-    //TODO return 1;
+    sprintf(err, "kurt2socketcan: error binding socket");
+    return(err);
   }
 
   // initializing data structure
