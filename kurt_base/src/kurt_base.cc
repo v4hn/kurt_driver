@@ -159,18 +159,24 @@ int main(int argc, char** argv)
   ros::Subscriber cmd_vel_sub = n.subscribe("cmd_vel", 10, velCallback);
 
   if (k_can_init() > 0) {
+    //TODO use damn good errmsgs from kurt2socketcan
     ROS_ERROR("can not init can");
     return 1;
   }
 
-  //TODO following is necessary to decide if chassi has power.
-  //but needs rewrite
+  // nice but dirty little helper
   long wheel_a, wheel_b;
   int nr_msg;
-  if(!k_read_wheel_encoder(&wheel_a, &wheel_b, &nr_msg)) {
-    ROS_ERROR("error starting base (power on?)");
-    return 1;
+  int nr_msg_sum;
+  int i;
+  i = 0;
+  nr_msg_sum = 0;
+  while (i < 10 && nr_msg_sum < 1) {
+    k_read_wheel_encoder(&wheel_a, &wheel_b, &nr_msg);
+    nr_msg_sum += nr_msg;
+    i++;
   }
+  if(nr_msg_sum) ROS_ERROR("Could not talk to chassi. Power On?");
 
   if(use_rotunit) {
     can_rotunit_send(rotunit_speed);
