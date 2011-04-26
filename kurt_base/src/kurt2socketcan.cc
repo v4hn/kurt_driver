@@ -5,6 +5,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <math.h>
+#include <errno.h>
 
 #include <net/if.h>
 #include <sys/ioctl.h>
@@ -15,6 +16,8 @@
 #include "kurt2socketcan.h"
 
 #define VERSION        0
+
+#define ERRSOURCE      "kurt2socketcan"
 
 #define CAN_CONTROL    0x00000001 // control message
 
@@ -38,7 +41,7 @@
 #define CAN_GETROTUNIT 0x00000010 // current rotunit angle
 
 #define RAW            0          // raw control mode
-#define SPEED          1	        // speed control mode
+#define SPEED          1          // speed control mode
 #define SPEED_CM       2          // speed (cm/s) control mode
 #define MC_RESET       0xFFFF	  // submit software reset
 
@@ -46,9 +49,6 @@
 #define CAN_GYRO_MC1   0x0000000E // data from gyro connected to 1st C167
 #define CAN_GYRO_MC2   0x0000001E // data from gyro connected to 2nd C167
 #define C_FACTOR       10000      // correction factor needed for gyro_sigma
-
-__u8 frc; // function return code
-char error_text[64];
 
 __u8 info_1[8];
 __u8 info_2[8];
@@ -66,8 +66,6 @@ __u8 rec_getrotunit[8];
 // receive OptiScan messages
 __u8 oscmdr[8], osresr[8];
 
-SENSOR_STATE kurt2_state;
-
 // encoder ticks
 int left_encoder = 0, right_encoder = 0;
 // msg number
@@ -77,20 +75,16 @@ __u16           uwRcvCntT;
 __u16           uwTrmCntT;
 __u32           ulFrameCntT;
 
+char err[64];
+
 // SocketCan specific variables
 int cansocket; // can raw socket
-
-/* TODO KILL
-   char *can_error(char *source) {
-   return(0);
-   }
-   */
 
 char *send_frame(can_frame *frame) {
   int nbytes;
   if ((nbytes = write(cansocket, frame, sizeof(*frame))) != sizeof(*frame)) {
-    perror("kurt2socketcan: error writing socket");
-    //TODO return(1);
+    sprintf(err, "%s: error writing socket (%s)", ERRSOURCE, strerror(errno));
+    return(err);
   }
   return(0);
 }
@@ -98,19 +92,19 @@ char *send_frame(can_frame *frame) {
 char *receive_frame(can_frame *frame) {
   int nbytes;
   if ((nbytes = read(cansocket, frame, sizeof(*frame))) != sizeof(*frame)) {
-    perror("kurt2socketcan: error reading socket");
-    //TODO return(1);
+    sprintf(err, "%s: error reading socket (%s)", ERRSOURCE, strerror(errno));
+    return(err);
   }
-  perror("received.");
   return(0);
 }
 
 char *can_read_fifo(void) {
   struct can_frame frame;
   int i;
-  char output[1024];
+  char *err;
 
-  receive_frame(&frame);
+  err = receive_frame(&frame);
+  if (err) return(err);
 
   switch (frame.can_id) {
     case CAN_CONTROL:
@@ -221,8 +215,9 @@ char *can_read_fifo(void) {
       }
       break;
     default:
-      //TODO sprintf(error_text, "Unknown CAN ID in can_read_fifo: %X", MsgId);
-      return(0);
+      sprintf(err, "%s: Unknown CAN ID in can_read_fifo: %X", ERRSOURCE,
+          frame.can_id);
+      return(err);
   }
 
   return(0);
@@ -237,11 +232,10 @@ char *can_init(int *version) {
   struct ifreq ifr;
   char caninterface[] = "can0"; //TODO automatic searching for caninterface
   int i;
-  char err[1024];
   /* open socket */
   cansocket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
   if (cansocket < 0) {
-    sprintf(err, "kurt2socketcan: error opening socket");
+    sprintf(err, "%s: error opening socket", ERRSOURCE);
     return(err);
   }
 
@@ -249,13 +243,13 @@ char *can_init(int *version) {
 
   strcpy(ifr.ifr_name, caninterface);
   if (ioctl(cansocket, SIOCGIFINDEX, &ifr) < 0) {
-    sprintf(err, "kurt2socketcan: SIOCGIFINDEX %d", caninterface);
+    sprintf(err, "%s: SIOCGIFINDEX %s", ERRSOURCE, caninterface);
     return(err);
   }
   addr.can_ifindex = ifr.ifr_ifindex;
 
   if (bind(cansocket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    sprintf(err, "kurt2socketcan: error binding socket");
+    sprintf(err, "%s: error binding socket", ERRSOURCE);
     return(err);
   }
 
@@ -300,6 +294,7 @@ char *can_motor(int left_pwm,  char left_dir,  char left_brake,
     int right_pwm, char right_dir, char right_brake) {
 
   struct can_frame frame;
+  char *err;
 
   char left_dir_brake =  (left_dir << 1) + left_brake;
   char right_dir_brake = (right_dir << 1) + right_brake;
@@ -316,13 +311,16 @@ char *can_motor(int left_pwm,  char left_dir,  char left_brake,
   frame.data[7] = (right_pwm);
 
   uwTrmCntT = 1;
-  send_frame(&frame);
+
+  err = send_frame(&frame);
+  if (err) return(err);
 
   return(0);
 }
 
 char *can_speed(int left_speed, int right_speed) {
   struct can_frame frame;
+  char *err;
 
   frame.can_id = CAN_CONTROL;
   frame.can_dlc = 8;
@@ -336,16 +334,17 @@ char *can_speed(int left_speed, int right_speed) {
   frame.data[7] = 0;
 
   uwTrmCntT = 1;
-  send_frame(&frame);
+
+  err = send_frame(&frame);
+  if (err) return(err);
 
   return(0);
 }
 
-
-
 char *can_speed_cm(int left_speed, int right_speed, int omega,
     int AntiWindup) {
   struct can_frame frame;
+  char *err;
   //printf("vl: %d, vr: %d, omega: %d, aw: %d\n",left_speed, right_speed, omega, AntiWindup);
   int sign   = omega < 0      ? 1 : 0;
   int windup = AntiWindup > 0 ? 1 : 0;
@@ -365,13 +364,16 @@ char *can_speed_cm(int left_speed, int right_speed, int omega,
   frame.data[7] = omega;
 
   uwTrmCntT = 1;
-  send_frame(&frame);
+
+  err = send_frame(&frame);
+  if (err) return(err);
 
   return(0);
 }
 
 char *can_float(int mode, float f1, float f2) {
   struct can_frame frame;
+  char *err;
 
   long l1 = (long)(1e6*f1);
 
@@ -387,13 +389,16 @@ char *can_float(int mode, float f1, float f2) {
   frame.data[7] = 0;
 
   uwTrmCntT = 1;
-  send_frame(&frame);
+
+  err = send_frame(&frame);
+  if (err) return(err);
 
   return(0);
 }
 
 char *can_mc_reset() {
   struct can_frame frame;
+  char *err;
 
   frame.can_id = CAN_CONTROL;
   frame.can_dlc = 8;
@@ -408,15 +413,15 @@ char *can_mc_reset() {
 
   uwTrmCntT = 1;
 
-  // necessary to do this twice?
-  send_frame(&frame);
-  send_frame(&frame);
+  err = send_frame(&frame);
+  if (err) return(err);
 
   return(0);
 }
 
 char *can_gyro_calibrate() {
   struct can_frame frame;
+  char *err;
 
   frame.can_id = CAN_CONTROL;
   frame.can_dlc = 8;
@@ -430,13 +435,16 @@ char *can_gyro_calibrate() {
   frame.data[7] = 0;
 
   uwTrmCntT = 1;
-  send_frame(&frame);
+
+  err = send_frame(&frame);
+  if (err) return(err);
 
   return(0);
 }
 
 char *can_gyro_reset() {
   struct can_frame frame;
+  char *err;
 
   frame.can_id = CAN_CONTROL;
   frame.can_dlc = 8;
@@ -450,13 +458,16 @@ char *can_gyro_reset() {
   frame.data[7] = 0;
 
   uwTrmCntT = 1;
-  send_frame(&frame);
+
+  err = send_frame(&frame);
+  if (err) return(err);
 
   return(0);
 }
 
 char *can_ssc_reset() {
   struct can_frame frame;
+  char *err;
 
   frame.can_id = CAN_CONTROL;
   frame.can_dlc = 8;
@@ -470,13 +481,16 @@ char *can_ssc_reset() {
   frame.data[7] = 0;
 
   uwTrmCntT = 1;
-  send_frame(&frame);
+
+  err = send_frame(&frame);
+  if (err) return(err);
 
   return(0);
 }
 
 char *can_rotunit_send(int speed) {
   struct can_frame frame;
+  char *err;
 
   frame.can_id = 0x80;
   frame.can_dlc = 8;
@@ -490,7 +504,9 @@ char *can_rotunit_send(int speed) {
   frame.data[7] = 0;
 
   uwTrmCntT = 1;
-  send_frame(&frame);
+
+  err = send_frame(&frame);
+  if (err) return(err);
 
   return(0);
 }
@@ -498,9 +514,11 @@ char *can_rotunit_send(int speed) {
 char *can_sonar0_3(int *sonar0, int *sonar1, int *sonar2, int *sonar3,
     unsigned long *time) {
 
-  if (can_read_fifo()) {
-    return(error_text);
-  }
+  char *err;
+
+  err = can_read_fifo();
+  if (err) return(err);
+
   *sonar0 = (adc00_03[0] << 8) + adc00_03[1];
   *sonar1 = (adc00_03[2] << 8) + adc00_03[3];
   *sonar2 = (adc00_03[4] << 8) + adc00_03[5];
@@ -513,9 +531,11 @@ char *can_sonar0_3(int *sonar0, int *sonar1, int *sonar2, int *sonar3,
 char *can_sonar4_7(int *sonar4, int *sonar5, int *sonar6, int *sonar7,
     unsigned long *time) {
 
-  if (can_read_fifo()) {
-    return(error_text);
-  }
+  char *err;
+
+  err = can_read_fifo();
+  if (err) return(err);
+
   *sonar4 = (adc04_07[0] << 8) + adc04_07[1];
   *sonar5 = (adc04_07[2] << 8) + adc04_07[3];
   *sonar6 = (adc04_07[4] << 8) + adc04_07[5];
@@ -526,10 +546,10 @@ char *can_sonar4_7(int *sonar4, int *sonar5, int *sonar6, int *sonar7,
 }
 
 char *can_sonar8_9(int *sonar8, int *sonar9, unsigned long *time) {
+  char *err;
+  err = can_read_fifo();
+  if (err) return(err);
 
-  if (can_read_fifo()) {
-    return(error_text);
-  }
   *sonar8 = (adc08_11[0] << 8) + adc08_11[1];
   *sonar9 = (adc08_11[2] << 8) + adc08_11[3];
   *time = 0;
@@ -538,10 +558,10 @@ char *can_sonar8_9(int *sonar8, int *sonar9, unsigned long *time) {
 }
 
 char *can_tilt(int *tilt0, int *tilt1, unsigned long *time) {
+  char *err;
+  err = can_read_fifo();
+  if (err) return(err);
 
-  if (can_read_fifo()) {
-    return(error_text);
-  }
   *tilt0 = (adc08_11[4] << 8) + adc08_11[5];
   *tilt1 = (adc08_11[6] << 8) + adc08_11[7];
   *time = 0;
@@ -549,9 +569,10 @@ char *can_tilt(int *tilt0, int *tilt1, unsigned long *time) {
 }
 
 char *can_current(int *left, int *right, unsigned long *time) {
-  if (can_read_fifo()) {
-    return(error_text);
-  }
+  char *err;
+  err = can_read_fifo();
+  if (err) return(err);
+
   *left  = (adc12_15[0] << 8) + adc12_15[1];
   *right = (adc12_15[2] << 8) + adc12_15[3];
   *time = 0;
@@ -560,18 +581,17 @@ char *can_current(int *left, int *right, unsigned long *time) {
 
 char *can_tilt_comp(double *tilt0, double *tilt1, int *comp1, int *comp2,
     unsigned long *time) {
+  char *err;
   double a0, a1;
   unsigned int t0, t1;
 
-  if (can_read_fifo()) {
-    return(error_text);
-  }
+  err = can_read_fifo();
+  if (err) return(err);
 
   t0 = (rec_tilt_comp[0] << 8) + (rec_tilt_comp[1]);
   t1 = (rec_tilt_comp[2] << 8) + (rec_tilt_comp[3]);
   *comp1 = (rec_tilt_comp[4] << 8) + rec_tilt_comp[5];
   *comp2 = (rec_tilt_comp[6] << 8) + rec_tilt_comp[7];
-
 
   // calculate g values (offset and sensitivity correction)
   a0 = ((double)t0 - 32768.0) / 3932.0;
@@ -584,10 +604,13 @@ char *can_tilt_comp(double *tilt0, double *tilt1, int *comp1, int *comp2,
   return(0);
 }
 
-char *can_gyro_mc1(double *gyro_mc1_angle, double *gyro_mc1_sigma, unsigned long *time)
-{
+char *can_gyro_mc1(double *gyro_mc1_angle, double *gyro_mc1_sigma, unsigned long *time) {
+  char *err;
   double angle, sigma_deg, tmp;
   signed long gyro_raw;
+
+  err = can_read_fifo();
+  if (err) return(err);
 
   gyro_raw = (rec_gyro_mc1[0] << 24) + (rec_gyro_mc1[1] << 16)
     + (rec_gyro_mc1[2] << 8)  + (rec_gyro_mc1[3]);
@@ -604,10 +627,13 @@ char *can_gyro_mc1(double *gyro_mc1_angle, double *gyro_mc1_sigma, unsigned long
   return(0);
 }
 
-char *can_gyro_mc2(double *gyro_mc2_angle, double *gyro_mc2_sigma, unsigned long *time)
-{
+char *can_gyro_mc2(double *gyro_mc2_angle, double *gyro_mc2_sigma, unsigned long *time) {
+  char *err;
   double angle, sigma_deg, tmp;
   signed long gyro_raw;
+
+  err = can_read_fifo();
+  if (err) return(err);
 
   gyro_raw = (rec_gyro_mc2[0] << 24) + (rec_gyro_mc2[1] << 16)
     + (rec_gyro_mc2[2] << 8)  + (rec_gyro_mc2[3]);
@@ -625,9 +651,9 @@ char *can_gyro_mc2(double *gyro_mc2_angle, double *gyro_mc2_sigma, unsigned long
 }
 
 char *can_encoder(long *left, long *right, int *nr_msg) {
-  if (can_read_fifo()) {
-    return(error_text);
-  }
+  char *err;
+  err = can_read_fifo();
+  if (err) return(err);
 
   *left = left_encoder;
   *right = right_encoder;
@@ -640,18 +666,20 @@ char *can_encoder(long *left, long *right, int *nr_msg) {
 
 
 char *can_rc(char *value, unsigned long *time) {
-  if (can_read_fifo()) {
-    return(error_text);
-  }
+  char *err;
+  err = can_read_fifo();
+  if (err) return(err);
+
   *value = bumperc[1];
   *time = 0;
   return(0);
 }
 
 char *can_bumper(char *value, unsigned long *time) {
-  if (can_read_fifo()) {
-    return(error_text);
-  }
+  char *err;
+  err = can_read_fifo();
+  if (err) return(err);
+
   *value = bumperc[0];
   *time = 0;
   return(0);
@@ -659,9 +687,10 @@ char *can_bumper(char *value, unsigned long *time) {
 
 char *can_adc2nd0_3(int *adc2nd0, int *adc2nd1, int *adc2nd2, int *adc2nd3,
     unsigned long *time) {
-  if (can_read_fifo()) {
-    return(error_text);
-  }
+  char *err;
+  err = can_read_fifo();
+  if (err) return(err);
+
   *adc2nd0 = (bdc00_03[0] << 8) + bdc00_03[1];
   *adc2nd1 = (bdc00_03[2] << 8) + bdc00_03[3];
   *adc2nd2 = (bdc00_03[4] << 8) + bdc00_03[5];
@@ -672,9 +701,10 @@ char *can_adc2nd0_3(int *adc2nd0, int *adc2nd1, int *adc2nd2, int *adc2nd3,
 
 char *can_adc2nd4_7(int *adc2nd4, int *adc2nd5, int *adc2nd6, int *adc2nd7,
     unsigned long *time) {
-  if (can_read_fifo()) {
-    return(error_text);
-  }
+  char *err;
+  err = can_read_fifo();
+  if (err) return(err);
+
   *adc2nd4 = (bdc04_07[0] << 8) + bdc04_07[1];
   *adc2nd5 = (bdc04_07[2] << 8) + bdc04_07[3];
   *adc2nd6 = (bdc04_07[4] << 8) + bdc04_07[5];
@@ -685,9 +715,10 @@ char *can_adc2nd4_7(int *adc2nd4, int *adc2nd5, int *adc2nd6, int *adc2nd7,
 
 char *can_adc2nd8_11(int *adc2nd8, int *adc2nd9, int *adc2nd10, int *adc2nd11,
     unsigned long *time) {
-  if (can_read_fifo()) {
-    return(error_text);
-  }
+  char *err;
+  err = can_read_fifo();
+  if (err) return(err);
+
   *adc2nd8  = (bdc08_11[0] << 8) + bdc08_11[1];
   *adc2nd9  = (bdc08_11[2] << 8) + bdc08_11[3];
   *adc2nd10 = (bdc08_11[4] << 8) + bdc08_11[5];
@@ -698,9 +729,10 @@ char *can_adc2nd8_11(int *adc2nd8, int *adc2nd9, int *adc2nd10, int *adc2nd11,
 
 char *can_adc2nd12_15(int *adc2nd12, int *adc2nd13, int *adc2nd14, int *adc2nd15,
     unsigned long *time) {
-  if (can_read_fifo()) {
-    return(error_text);
-  }
+  char *err;
+  err = can_read_fifo();
+  if (err) return(err);
+
   *adc2nd12 = (bdc12_15[0] << 8) + bdc12_15[1];
   *adc2nd13 = (bdc12_15[2] << 8) + bdc12_15[3];
   *adc2nd14 = (bdc12_15[4] << 8) + bdc12_15[5];
@@ -710,10 +742,11 @@ char *can_adc2nd12_15(int *adc2nd12, int *adc2nd13, int *adc2nd14, int *adc2nd15
 }
 
 char *can_sensor_state1(SENSOR_STATE *sensor_state1) {
+  char *err;
 
-  if (can_read_fifo()) {
-    return(error_text);
-  }
+  err = can_read_fifo();
+  if (err) return(err);
+
   sensor_state1->sonar0 = (adc00_03[0] << 8) + adc00_03[1];
   sensor_state1->sonar1 = (adc00_03[2] << 8) + adc00_03[3];
   sensor_state1->sonar2 = (adc00_03[4] << 8) + adc00_03[5];
@@ -749,10 +782,10 @@ char *can_sensor_state1(SENSOR_STATE *sensor_state1) {
 }
 
 char *can_sensor_state2(SENSOR_STATE *sensor_state2) {
+  char *err;
+  err = can_read_fifo();
+  if (err) return(err);
 
-  if (can_read_fifo()) {
-    return(error_text);
-  }
   sensor_state2->bdc[0] = (bdc00_03[0] << 8) + bdc00_03[1];
   sensor_state2->bdc[1] = (bdc00_03[2] << 8) + bdc00_03[3];
   sensor_state2->bdc[2] = (bdc00_03[4] << 8) + bdc00_03[5];
@@ -780,9 +813,10 @@ char *can_sensor_state2(SENSOR_STATE *sensor_state2) {
 }
 
 char *can_getrotunit(int *rot) {
-  if (can_read_fifo()) {
-    return(error_text);
-  }
+  char *err;
+  err = can_read_fifo();
+  if (err) return(err);
+
   *rot = (rec_getrotunit[1] << 8) + rec_getrotunit[2];
   return(0);
 }
