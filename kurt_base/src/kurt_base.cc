@@ -176,7 +176,7 @@ int main(int argc, char** argv)
     nr_msg_sum += nr_msg;
     i++;
   }
-  if(nr_msg_sum) ROS_ERROR("Could not talk to chassi. Power On?");
+  if(!nr_msg_sum) ROS_ERROR("Could not talk to chassi. Power On?");
 
   if(use_rotunit) {
     can_rotunit_send(rotunit_speed);
