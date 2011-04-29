@@ -75,7 +75,7 @@ __u16           uwRcvCntT;
 __u16           uwTrmCntT;
 __u32           ulFrameCntT;
 
-char err[64];
+char err[256];
 
 // SocketCan specific variables
 int cansocket; // can raw socket
@@ -90,11 +90,33 @@ char *send_frame(can_frame *frame) {
 }
 
 char *receive_frame(can_frame *frame) {
-  int nbytes;
+  int nbytes, rc;
+  fd_set rfds;
+  struct timeval timeout;
+
+  timeout.tv_sec = 5;
+  timeout.tv_usec = 0;
+
+  FD_ZERO(&rfds);
+  FD_SET(cansocket, &rfds);
+
+  rc = select(cansocket+1, &rfds, NULL, NULL, &timeout);
+  //rc = select(cansocket, &rfds, NULL, NULL, &timeout);
+
+  if (rc == 0) {
+    sprintf(err, "%s: receiving frame timed out (%s)", ERRSOURCE, strerror(errno));
+    return(err);
+  }
+  else if (rc == -1) {
+    sprintf(err, "%s: error receiving frame (%s)", ERRSOURCE, strerror(errno));
+    return(err);
+  }
+
   if ((nbytes = read(cansocket, frame, sizeof(*frame))) != sizeof(*frame)) {
     sprintf(err, "%s: error reading socket (%s)", ERRSOURCE, strerror(errno));
     return(err);
   }
+
   return(0);
 }
 
@@ -232,6 +254,7 @@ char *can_init(int *version) {
   struct ifreq ifr;
   char caninterface[] = "can0"; //TODO automatic searching for caninterface
   int i;
+
   /* open socket */
   cansocket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
   if (cansocket < 0) {

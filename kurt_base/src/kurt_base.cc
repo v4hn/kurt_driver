@@ -159,7 +159,6 @@ int main(int argc, char** argv)
   ros::Subscriber cmd_vel_sub = n.subscribe("cmd_vel", 10, velCallback);
 
   if (k_can_init() > 0) {
-    //TODO use damn good errmsgs from kurt2socketcan
     ROS_ERROR("can not init can");
     return 1;
   }
@@ -171,7 +170,9 @@ int main(int argc, char** argv)
   int i;
   i = 0;
   nr_msg_sum = 0;
+  nr_msg = 0;
   while (i < 10 && nr_msg_sum < 1) {
+    //ROS_INFO("reading wheel for powerup check: %d", nr_msg_sum);
     k_read_wheel_encoder(&wheel_a, &wheel_b, &nr_msg);
     nr_msg_sum += nr_msg;
     i++;
