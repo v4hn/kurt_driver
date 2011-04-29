@@ -163,21 +163,10 @@ int main(int argc, char** argv)
     return 1;
   }
 
-  // nice but dirty little helper
   long wheel_a, wheel_b;
   int nr_msg;
-  int nr_msg_sum;
-  int i;
-  i = 0;
-  nr_msg_sum = 0;
-  nr_msg = 0;
-  while (i < 10 && nr_msg_sum < 1) {
-    //ROS_INFO("reading wheel for powerup check: %d", nr_msg_sum);
-    k_read_wheel_encoder(&wheel_a, &wheel_b, &nr_msg);
-    nr_msg_sum += nr_msg;
-    i++;
-  }
-  if(!nr_msg_sum) ROS_ERROR("Could not talk to chassi. Power On?");
+  k_read_wheel_encoder(&wheel_a, &wheel_b, &nr_msg);
+  if(!nr_msg) ROS_ERROR("Could not talk to chassi. Power On?");
 
   if(use_rotunit) {
     can_rotunit_send(rotunit_speed);

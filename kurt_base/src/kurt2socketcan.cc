@@ -15,7 +15,7 @@
 
 #include "kurt2socketcan.h"
 
-#define VERSION        0
+#define VERSION        1
 
 #define ERRSOURCE      "kurt2socketcan"
 
