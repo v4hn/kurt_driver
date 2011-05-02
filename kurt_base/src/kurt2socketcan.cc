@@ -101,10 +101,9 @@ char *receive_frame(can_frame *frame) {
   FD_SET(cansocket, &rfds);
 
   rc = select(cansocket+1, &rfds, NULL, NULL, &timeout);
-  //rc = select(cansocket, &rfds, NULL, NULL, &timeout);
 
   if (rc == 0) {
-    sprintf(err, "%s: receiving frame timed out (%s)", ERRSOURCE, strerror(errno));
+    sprintf(err, "%s: receiving frame timed out", ERRSOURCE);
     return(err);
   }
   else if (rc == -1) {

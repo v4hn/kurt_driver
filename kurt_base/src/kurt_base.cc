@@ -159,13 +159,14 @@ int main(int argc, char** argv)
   ros::Subscriber cmd_vel_sub = n.subscribe("cmd_vel", 10, velCallback);
 
   if (k_can_init() > 0) {
-    ROS_ERROR("can not init can");
+    ROS_ERROR("Can not init CAN");
     return 1;
   }
 
   long wheel_a, wheel_b;
   int nr_msg;
   k_read_wheel_encoder(&wheel_a, &wheel_b, &nr_msg);
+  ROS_INFO("nr_msg=%d", nr_msg);
   if(!nr_msg) ROS_ERROR("Could not talk to chassi. Power On?");
 
   if(use_rotunit) {
