@@ -83,7 +83,7 @@ int cansocket; // can raw socket
 char *send_frame(can_frame *frame) {
   int nbytes;
   if ((nbytes = write(cansocket, frame, sizeof(*frame))) != sizeof(*frame)) {
-    sprintf(err, "%s: error writing socket (%s)", ERRSOURCE, strerror(errno));
+    sprintf(err, "%s: Error writing socket (%s)", ERRSOURCE, strerror(errno));
     return(err);
   }
   return(0);
@@ -103,16 +103,16 @@ char *receive_frame(can_frame *frame) {
   rc = select(cansocket+1, &rfds, NULL, NULL, &timeout);
 
   if (rc == 0) {
-    sprintf(err, "%s: receiving frame timed out", ERRSOURCE);
+    sprintf(err, "%s: Receiving frame timed out", ERRSOURCE);
     return(err);
   }
   else if (rc == -1) {
-    sprintf(err, "%s: error receiving frame (%s)", ERRSOURCE, strerror(errno));
+    sprintf(err, "%s: Error receiving frame (%s)", ERRSOURCE, strerror(errno));
     return(err);
   }
 
   if ((nbytes = read(cansocket, frame, sizeof(*frame))) != sizeof(*frame)) {
-    sprintf(err, "%s: error reading socket (%s)", ERRSOURCE, strerror(errno));
+    sprintf(err, "%s: Error reading socket (%s)", ERRSOURCE, strerror(errno));
     return(err);
   }
 
@@ -257,7 +257,7 @@ char *can_init(int *version) {
   /* open socket */
   cansocket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
   if (cansocket < 0) {
-    sprintf(err, "%s: error opening socket", ERRSOURCE);
+    sprintf(err, "%s: Error opening socket (%s)", ERRSOURCE, strerror(errno));
     return(err);
   }
 
@@ -265,13 +265,14 @@ char *can_init(int *version) {
 
   strcpy(ifr.ifr_name, caninterface);
   if (ioctl(cansocket, SIOCGIFINDEX, &ifr) < 0) {
-    sprintf(err, "%s: SIOCGIFINDEX %s", ERRSOURCE, caninterface);
+    sprintf(err, "%s: SIOCGIFINDEX for interace %s (%s)", ERRSOURCE,
+        caninterface, strerror(errno));
     return(err);
   }
   addr.can_ifindex = ifr.ifr_ifindex;
 
   if (bind(cansocket, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-    sprintf(err, "%s: error binding socket", ERRSOURCE);
+    sprintf(err, "%s: Error binding socket (%s)", ERRSOURCE, strerror(errno));
     return(err);
   }
 

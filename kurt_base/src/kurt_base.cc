@@ -165,8 +165,8 @@ int main(int argc, char** argv)
 
   long wheel_a, wheel_b;
   int nr_msg;
+  nr_msg = 0;
   k_read_wheel_encoder(&wheel_a, &wheel_b, &nr_msg);
-  ROS_INFO("nr_msg=%d", nr_msg);
   if(!nr_msg) ROS_ERROR("Could not talk to chassi. Power On?");
 
   if(use_rotunit) {
@@ -495,7 +495,7 @@ bool k_read_wheel_encoder (long *channel_1, long *channel_2, int *nr_msg)
 {
   char *retext; // return text of CAN interface functions
   if ((retext = can_encoder(channel_1, channel_2, nr_msg))) {
-    ROS_WARN("error Can read encodervals (%s)", retext);
+    ROS_WARN("Error while reading encodervals (%s)", retext);
   }
 
   return *nr_msg > 0;
