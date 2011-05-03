@@ -93,7 +93,7 @@ char *receive_frame(can_frame *frame) {
   int nbytes, rc;
   fd_set rfds;
   struct timeval timeout;
-
+/*
   timeout.tv_sec = 5;
   timeout.tv_usec = 0;
 
@@ -101,6 +101,8 @@ char *receive_frame(can_frame *frame) {
   FD_SET(cansocket, &rfds);
 
   rc = select(cansocket+1, &rfds, NULL, NULL, &timeout);
+*/
+  rc = 1;
 
   if (rc == 0) {
     sprintf(err, "%s: Receiving frame timed out", ERRSOURCE);
