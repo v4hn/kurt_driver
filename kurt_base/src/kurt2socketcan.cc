@@ -93,26 +93,25 @@ char *receive_frame(can_frame *frame) {
   int nbytes, rc;
   fd_set rfds;
   struct timeval timeout;
-/*
-  timeout.tv_sec = 5;
+
+  timeout.tv_sec = 1;
   timeout.tv_usec = 0;
 
   FD_ZERO(&rfds);
   FD_SET(cansocket, &rfds);
 
-  rc = select(cansocket+1, &rfds, NULL, NULL, &timeout);
-*/
   rc = 1;
+
+  rc = select(cansocket+1, &rfds, NULL, NULL, &timeout);
 
   if (rc == 0) {
     sprintf(err, "%s: Receiving frame timed out", ERRSOURCE);
     return(err);
   }
   else if (rc == -1) {
-    sprintf(err, "%s: Error receiving frame (%s)", ERRSOURCE, strerror(errno));
+    sprintf(err, "%s: Error receiving frame (%d=%s)", ERRSOURCE, errno, strerror(errno));
     return(err);
   }
-
   if ((nbytes = read(cansocket, frame, sizeof(*frame))) != sizeof(*frame)) {
     sprintf(err, "%s: Error reading socket (%s)", ERRSOURCE, strerror(errno));
     return(err);
@@ -126,8 +125,13 @@ char *can_read_fifo(void) {
   int i;
   char *err;
 
-  err = receive_frame(&frame);
-  if (err) return(err);
+  while (42) {//###
+
+  err = receive_frame(&frame); if (err) return(err);
+
+  //TODO is this the right size of chunks or do
+  //we have any chance to detect empty fifo?????
+  if(frame.can_id == 10) break;
 
   switch (frame.can_id) {
     case CAN_CONTROL:
@@ -170,14 +174,14 @@ char *can_read_fifo(void) {
         right_encoder += (encoder[2] << 8) + encoder[3]-65536;
       else
         right_encoder += (encoder[2] << 8) + encoder[3];
-      /*
-         printf("--- %ld %ld %d %d %d %d\n", left_encoder, right_encoder,
-         encoder[0],
-         encoder[1],
-         encoder[2],
-         encoder[3]);
-         */
-      //	   fflush(stdout);
+
+      printf("--- %ld %ld %d %d %d %d\n", left_encoder, right_encoder,
+          encoder[0],
+          encoder[1],
+          encoder[2],
+          encoder[3]);
+      fflush(stdout);
+
       break;
     case CAN_BUMPERC:
       for (i = 0; i < frame.can_dlc; i++) {
@@ -242,7 +246,7 @@ char *can_read_fifo(void) {
           frame.can_id);
       return(err);
   }
-
+  }//###
   return(0);
 }
 
@@ -340,6 +344,8 @@ char *can_motor(int left_pwm,  char left_dir,  char left_brake,
   err = send_frame(&frame);
   if (err) return(err);
 
+perror("can_motor");
+
   return(0);
 }
 
@@ -392,6 +398,8 @@ char *can_speed_cm(int left_speed, int right_speed, int omega,
 
   err = send_frame(&frame);
   if (err) return(err);
+
+perror("can_speed_cm");
 
   return(0);
 }

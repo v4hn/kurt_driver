@@ -162,13 +162,13 @@ int main(int argc, char** argv)
     ROS_ERROR("Can not init CAN");
     return 1;
   }
-
+/* TODO this does not work well
   long wheel_a, wheel_b;
   int nr_msg;
   nr_msg = 0;
   k_read_wheel_encoder(&wheel_a, &wheel_b, &nr_msg);
   if(!nr_msg) ROS_ERROR("Could not talk to chassi. Power On?");
-
+*/
   if(use_rotunit) {
     can_rotunit_send(rotunit_speed);
   }
