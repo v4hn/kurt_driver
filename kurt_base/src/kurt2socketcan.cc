@@ -125,128 +125,128 @@ char *can_read_fifo(void) {
   int i;
   char *err;
 
-  while (42) {//###
+  while (42) {
 
-  err = receive_frame(&frame); if (err) return(err);
+    err = receive_frame(&frame); if (err) return(err);
 
-  //TODO is this the right size of chunks or do
-  //we have any chance to detect empty fifo?????
-  if(frame.can_id == 10) break;
+    //TODO is this the right size of chunks or do
+    //we have any chance to detect empty fifo?????
+    if(frame.can_id == 10) break;
 
-  switch (frame.can_id) {
-    case CAN_CONTROL:
-      break;
-    case CAN_INFO_1:
-      for (i = 0; i < frame.can_dlc; i++) {
-        info_1[i] = frame.data[i];
-      }
-      break;
-    case CAN_ADC00_03:
-      for (i = 0; i < frame.can_dlc; i++) {
-        adc00_03[i] = frame.data[i];
-      }
-      break;
-    case CAN_ADC04_07:
-      for (i = 0; i < frame.can_dlc; i++) {
-        adc04_07[i] = frame.data[i];
-      }
-      break;
-    case CAN_ADC08_11:
-      for (i = 0; i < frame.can_dlc; i++) {
-        adc08_11[i] = frame.data[i];
-      }
-      break;
-    case CAN_ADC12_15:
-      for (i = 0; i < frame.can_dlc; i++) {
-        adc12_15[i] = frame.data[i];
-      }
-      break;
-    case CAN_ENCODER:
-      for (i = 0; i < frame.can_dlc; i++) {
-        encoder[i] = frame.data[i];
-      }
-      nr_encoder_msg++;
-      if (encoder[0] & 0x80) // negative Zahl auf 15 Bit genau
-        left_encoder += (encoder[0] << 8) + encoder[1]-65536;
-      else
-        left_encoder += (encoder[0] << 8) + encoder[1];
-      if (encoder[2] & 0x80) // negative Zahl auf 15 Bit genau
-        right_encoder += (encoder[2] << 8) + encoder[3]-65536;
-      else
-        right_encoder += (encoder[2] << 8) + encoder[3];
+    switch (frame.can_id) {
+      case CAN_CONTROL:
+        break;
+      case CAN_INFO_1:
+        for (i = 0; i < frame.can_dlc; i++) {
+          info_1[i] = frame.data[i];
+        }
+        break;
+      case CAN_ADC00_03:
+        for (i = 0; i < frame.can_dlc; i++) {
+          adc00_03[i] = frame.data[i];
+        }
+        break;
+      case CAN_ADC04_07:
+        for (i = 0; i < frame.can_dlc; i++) {
+          adc04_07[i] = frame.data[i];
+        }
+        break;
+      case CAN_ADC08_11:
+        for (i = 0; i < frame.can_dlc; i++) {
+          adc08_11[i] = frame.data[i];
+        }
+        break;
+      case CAN_ADC12_15:
+        for (i = 0; i < frame.can_dlc; i++) {
+          adc12_15[i] = frame.data[i];
+        }
+        break;
+      case CAN_ENCODER:
+        for (i = 0; i < frame.can_dlc; i++) {
+          encoder[i] = frame.data[i];
+        }
+        nr_encoder_msg++;
+        if (encoder[0] & 0x80) // negative Zahl auf 15 Bit genau
+          left_encoder += (encoder[0] << 8) + encoder[1]-65536;
+        else
+          left_encoder += (encoder[0] << 8) + encoder[1];
+        if (encoder[2] & 0x80) // negative Zahl auf 15 Bit genau
+          right_encoder += (encoder[2] << 8) + encoder[3]-65536;
+        else
+          right_encoder += (encoder[2] << 8) + encoder[3];
 
-      printf("--- %ld %ld %d %d %d %d\n", left_encoder, right_encoder,
-          encoder[0],
-          encoder[1],
-          encoder[2],
-          encoder[3]);
-      fflush(stdout);
+        printf("--- %ld %ld %d %d %d %d\n", left_encoder, right_encoder,
+            encoder[0],
+            encoder[1],
+            encoder[2],
+            encoder[3]);
+        fflush(stdout);
 
-      break;
-    case CAN_BUMPERC:
-      for (i = 0; i < frame.can_dlc; i++) {
-        bumperc[i] = frame.data[i];
-      }
-      break;
-    case CAN_BDC00_03:
-      for (i = 0; i < frame.can_dlc; i++) {
-        bdc00_03[i] = frame.data[i];
-      }
-      break;
-    case CAN_BDC04_07:
-      for (i = 0; i < frame.can_dlc; i++) {
-        bdc04_07[i] = frame.data[i];
-      }
-      break;
-    case CAN_BDC08_11:
-      for (i = 0; i < frame.can_dlc; i++) {
-        bdc08_11[i] = frame.data[i];
-      }
-      break;
-    case CAN_BDC12_15:
-      for (i = 0; i < frame.can_dlc; i++) {
-        bdc12_15[i] = frame.data[i];
-      }
-      break;
-    case CAN_TILT_COMP:
-      // printf("-");
-      for (i = 0; i < frame.can_dlc; i++) {
-        rec_tilt_comp[i] = frame.data[i];
-      }
-      break;
-    case CAN_GYRO_MC1:
-      //	 printf("CAN_GYRO_MC1");
-      for (i = 0; i < frame.can_dlc; i++) {
-        rec_gyro_mc1[i] = frame.data[i];
-        //	 printf("%d \n",rec_gyro_mc1[i]);  
-      }
-      break;
-    case CAN_GYRO_MC2:
-      for (i = 0; i < frame.can_dlc; i++) {
-        rec_gyro_mc2[i] = frame.data[i];
-      }
-      break;
-    case CAN_DEADRECK:
-      for (i = 0; i < frame.can_dlc; i++) {
-        rec_deadreck[i] = frame.data[i];
-      }
-      break;
-    case CAN_GETSPEED:
-      for (i = 0; i < frame.can_dlc; i++) {
-        rec_getspeed[i] = frame.data[i];
-      }
-      break;
-    case CAN_GETROTUNIT:
-      for (i = 0; i < frame.can_dlc; i++) {
-        rec_getrotunit[i] = frame.data[i];
-      }
-      break;
-    default:
-      sprintf(err, "%s: Unknown CAN ID in can_read_fifo: %X", ERRSOURCE,
-          frame.can_id);
-      return(err);
+        break;
+      case CAN_BUMPERC:
+        for (i = 0; i < frame.can_dlc; i++) {
+          bumperc[i] = frame.data[i];
+        }
+        break;
+      case CAN_BDC00_03:
+        for (i = 0; i < frame.can_dlc; i++) {
+          bdc00_03[i] = frame.data[i];
+        }
+        break;
+      case CAN_BDC04_07:
+        for (i = 0; i < frame.can_dlc; i++) {
+          bdc04_07[i] = frame.data[i];
+        }
+        break;
+      case CAN_BDC08_11:
+        for (i = 0; i < frame.can_dlc; i++) {
+          bdc08_11[i] = frame.data[i];
+        }
+        break;
+      case CAN_BDC12_15:
+        for (i = 0; i < frame.can_dlc; i++) {
+          bdc12_15[i] = frame.data[i];
+        }
+        break;
+      case CAN_TILT_COMP:
+        // printf("-");
+        for (i = 0; i < frame.can_dlc; i++) {
+          rec_tilt_comp[i] = frame.data[i];
+        }
+        break;
+      case CAN_GYRO_MC1:
+        //	 printf("CAN_GYRO_MC1");
+        for (i = 0; i < frame.can_dlc; i++) {
+          rec_gyro_mc1[i] = frame.data[i];
+          //	 printf("%d \n",rec_gyro_mc1[i]);  
+        }
+        break;
+      case CAN_GYRO_MC2:
+        for (i = 0; i < frame.can_dlc; i++) {
+          rec_gyro_mc2[i] = frame.data[i];
+        }
+        break;
+      case CAN_DEADRECK:
+        for (i = 0; i < frame.can_dlc; i++) {
+          rec_deadreck[i] = frame.data[i];
+        }
+        break;
+      case CAN_GETSPEED:
+        for (i = 0; i < frame.can_dlc; i++) {
+          rec_getspeed[i] = frame.data[i];
+        }
+        break;
+      case CAN_GETROTUNIT:
+        for (i = 0; i < frame.can_dlc; i++) {
+          rec_getrotunit[i] = frame.data[i];
+        }
+        break;
+      default:
+        sprintf(err, "%s: Unknown CAN ID in can_read_fifo: %X", ERRSOURCE,
+            frame.can_id);
+        return(err);
+    }
   }
-  }//###
   return(0);
 }
 
@@ -344,7 +344,7 @@ char *can_motor(int left_pwm,  char left_dir,  char left_brake,
   err = send_frame(&frame);
   if (err) return(err);
 
-perror("can_motor");
+  perror("can_motor");
 
   return(0);
 }
@@ -399,7 +399,7 @@ char *can_speed_cm(int left_speed, int right_speed, int omega,
   err = send_frame(&frame);
   if (err) return(err);
 
-perror("can_speed_cm");
+  perror("can_speed_cm");
 
   return(0);
 }
