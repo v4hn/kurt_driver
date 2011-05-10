@@ -15,7 +15,7 @@
 
 #include "kurt2socketcan.h"
 
-#define VERSION        1
+#define VERSION        2
 
 #define ERRSOURCE      "kurt2socketcan"
 
@@ -63,17 +63,10 @@ __u8 rec_deadreck[8];
 __u8 rec_getspeed[8];
 __u8 rec_getrotunit[8];
 
-// receive OptiScan messages
-__u8 oscmdr[8], osresr[8];
-
 // encoder ticks
 int left_encoder = 0, right_encoder = 0;
 // msg number
 int  nr_encoder_msg = 0;
-
-__u16           uwRcvCntT;
-__u16           uwTrmCntT;
-__u32           ulFrameCntT;
 
 char err[256];
 
@@ -94,7 +87,7 @@ char *receive_frame(can_frame *frame) {
   fd_set rfds;
   struct timeval timeout;
 
-  timeout.tv_sec = 1;
+  timeout.tv_sec = 5;
   timeout.tv_usec = 0;
 
   FD_ZERO(&rfds);
@@ -109,7 +102,8 @@ char *receive_frame(can_frame *frame) {
     return(err);
   }
   else if (rc == -1) {
-    sprintf(err, "%s: Error receiving frame (%d=%s)", ERRSOURCE, errno, strerror(errno));
+    sprintf(err, "%s: Error receiving frame (%d=%s)", ERRSOURCE, errno,
+        strerror(errno));
     return(err);
   }
   if ((nbytes = read(cansocket, frame, sizeof(*frame))) != sizeof(*frame)) {
@@ -174,14 +168,14 @@ char *can_read_fifo(void) {
           right_encoder += (encoder[2] << 8) + encoder[3]-65536;
         else
           right_encoder += (encoder[2] << 8) + encoder[3];
-
+/*
         printf("--- %ld %ld %d %d %d %d\n", left_encoder, right_encoder,
             encoder[0],
             encoder[1],
             encoder[2],
             encoder[3]);
         fflush(stdout);
-
+*/
         break;
       case CAN_BUMPERC:
         for (i = 0; i < frame.can_dlc; i++) {
@@ -283,7 +277,6 @@ char *can_init(int *version) {
   }
 
   // initializing data structure
-  //TODO is this necessary?
   for (i = 0; i < 8; i++) {
     info_1[i]   = 0;
     adc00_03[i] = 0;
@@ -297,8 +290,6 @@ char *can_init(int *version) {
     bdc12_15[i] = 0;
     encoder[i]  = 0;
     bumperc[i]  = 0;
-    oscmdr[i]   = 0;
-    osresr[i]   = 0;
     rec_tilt_comp[i] = 0;
     rec_gyro_mc1[i]  = 0;
     rec_gyro_mc2[i]  = 0;
@@ -339,12 +330,8 @@ char *can_motor(int left_pwm,  char left_dir,  char left_brake,
   frame.data[6] = (right_pwm >> 8);
   frame.data[7] = (right_pwm);
 
-  uwTrmCntT = 1;
-
   err = send_frame(&frame);
   if (err) return(err);
-
-  perror("can_motor");
 
   return(0);
 }
@@ -363,8 +350,6 @@ char *can_speed(int left_speed, int right_speed) {
   frame.data[5] = right_speed;
   frame.data[6] = 0;
   frame.data[7] = 0;
-
-  uwTrmCntT = 1;
 
   err = send_frame(&frame);
   if (err) return(err);
@@ -394,12 +379,8 @@ char *can_speed_cm(int left_speed, int right_speed, int omega,
   frame.data[6] = omega >> 8;
   frame.data[7] = omega;
 
-  uwTrmCntT = 1;
-
   err = send_frame(&frame);
   if (err) return(err);
-
-  perror("can_speed_cm");
 
   return(0);
 }
@@ -420,8 +401,6 @@ char *can_float(int mode, float f1, float f2) {
   frame.data[5] = l1;
   frame.data[6] = 0;
   frame.data[7] = 0;
-
-  uwTrmCntT = 1;
 
   err = send_frame(&frame);
   if (err) return(err);
@@ -444,8 +423,6 @@ char *can_mc_reset() {
   frame.data[6] = 0;
   frame.data[7] = 0;
 
-  uwTrmCntT = 1;
-
   err = send_frame(&frame);
   if (err) return(err);
 
@@ -458,7 +435,7 @@ char *can_gyro_calibrate() {
 
   frame.can_id = CAN_CONTROL;
   frame.can_dlc = 8;
-  frame.data[0] = (0xff);
+  frame.data[0] = (__u8)(0xff);
   frame.data[1] = (0x02);
   frame.data[2] = 0;
   frame.data[3] = 0;
@@ -466,8 +443,6 @@ char *can_gyro_calibrate() {
   frame.data[5] = 0;
   frame.data[6] = 0;
   frame.data[7] = 0;
-
-  uwTrmCntT = 1;
 
   err = send_frame(&frame);
   if (err) return(err);
@@ -490,8 +465,6 @@ char *can_gyro_reset() {
   frame.data[6] = 0;
   frame.data[7] = 0;
 
-  uwTrmCntT = 1;
-
   err = send_frame(&frame);
   if (err) return(err);
 
@@ -513,8 +486,6 @@ char *can_ssc_reset() {
   frame.data[6] = 0;
   frame.data[7] = 0;
 
-  uwTrmCntT = 1;
-
   err = send_frame(&frame);
   if (err) return(err);
 
@@ -535,8 +506,6 @@ char *can_rotunit_send(int speed) {
   frame.data[5] = 0;
   frame.data[6] = 0;
   frame.data[7] = 0;
-
-  uwTrmCntT = 1;
 
   err = send_frame(&frame);
   if (err) return(err);
