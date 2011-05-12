@@ -1,0 +1,6 @@
+SUBSYSTEM!="tty", GOTO="canusb_rules_end"
+
+SYSFS{idVendor}=="0403", SYSFS{idProduct}=="ffa8", SUBSYSTEM=="tty",
+KERNEL=="ttyUSB[0-9]*", RUN+="/home/robot/ros/uos-ros-pkg.mstypa/kurt_driver/kurt_base/src/canbus.hotplug.sh"
+
+LABEL="canusb_rules_end"
