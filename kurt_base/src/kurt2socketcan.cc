@@ -106,7 +106,10 @@ char *receive_frame(can_frame *frame) {
         strerror(errno));
     return(err);
   }
-  if ((nbytes = read(cansocket, frame, sizeof(*frame))) != sizeof(*frame)) {
+
+  nbytes = read(cansocket, frame, sizeof(*frame));
+  //if(nbytes <= 0) fifo should be empty. but sadly this case never occurs.
+  if (nbytes != sizeof(*frame)) {
     sprintf(err, "%s: Error reading socket (%s)", ERRSOURCE, strerror(errno));
     return(err);
   }
@@ -121,7 +124,8 @@ char *can_read_fifo(void) {
 
   while (42) {
 
-    err = receive_frame(&frame); if (err) return(err);
+    err = receive_frame(&frame);
+    if (err) return(err);
 
     //TODO is this the right size of chunks or do
     //we have any chance to detect empty fifo?????
@@ -254,7 +258,7 @@ char *can_init(int *version) {
   char caninterface[] = "can0"; //TODO automatic searching for caninterface
   int i;
 
-  /* open socket */
+  // prepare socket
   cansocket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
   if (cansocket < 0) {
     sprintf(err, "%s: Error opening socket (%s)", ERRSOURCE, strerror(errno));
