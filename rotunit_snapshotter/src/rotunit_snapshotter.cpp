@@ -32,7 +32,11 @@
 *  POSSIBILITY OF SUCH DAMAGE.
 *********************************************************************/
 
-#include <cstdio>
+//#include <cstdio>
+//#include <cstdlib>
+#include <iostream>
+#include <fstream>
+#include <string>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
 
@@ -67,6 +71,20 @@ public:
 
     first_time_ = true;
     arm_ = false;
+
+    dump = false;
+    counter = 0;
+    if(ros::param::has("~file")) {
+      ROS_INFO("dumping data to files!");
+      ros::param::get("~file", path);
+      std::ofstream file(path.c_str());
+      if(!file.is_open()) ROS_WARN("unable to open file for writing '%s'", path.c_str());
+      else {
+        file << "TODO timestamp etc";
+        dump = true;
+      }
+      file.close();
+    }
   }
 
   void rotCallback(const sensor_msgs::JointState::ConstPtr& e)
@@ -95,6 +113,17 @@ public:
       {
         ROS_INFO("Published Cloud with %zu points", srv.response.cloud.points.size()) ;
         pub_.publish(srv.response.cloud);
+        if(dump) {
+          char actpath[1024];
+          sprintf(actpath, "%s%010d", path.c_str(), counter);
+          std::ofstream file (actpath);
+          if(!file.is_open()) ROS_WARN("unable to open file for writing '%s'", actpath);
+          else {
+            file << srv.response.cloud.points.size();
+            counter++;
+          }
+          file.close();
+        }
       }
       else
       {
@@ -114,6 +143,10 @@ private:
   bool first_time_;
   bool arm_;
   ros::Time last_time_;
+  ros::NodeHandle nh;
+  bool dump;
+  int counter;
+  std::string path; //path where clouds get dumped into files in SLAM format
 } ;
 
 }
@@ -124,6 +157,7 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "rotunit_snapshotter");
   ros::NodeHandle n;
+  ros::NodeHandle nh;
   ROS_INFO("Waiting for [build_cloud] to be advertised");
   ros::service::waitForService("build_cloud");
   ROS_INFO("Found build_cloud! Starting the snapshotter");

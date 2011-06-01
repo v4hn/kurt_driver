@@ -35,6 +35,8 @@
     <param name="ignore_laser_skew" value="false" />
   </node>
 
-  <node pkg="rotunit_snapshotter" type="rotunit_snapshotter" name="rotunit_snapshotter" />
+  <node pkg="rotunit_snapshotter" type="rotunit_snapshotter" name="rotunit_snapshotter" output="screen">
+    <param name="file" value="/home/robot/snapshots/testA"/>
+  </node>
 
 </launch>
