@@ -1,6 +1,0 @@
-<launch>
-  <!-- start world -->
-  <include file="$(find gazebo_worlds)/launch/empty_world.launch"/>
-
-  <include file="$(find kurt_gazebo)/kurt_spawn.launch"/>
-</launch>
