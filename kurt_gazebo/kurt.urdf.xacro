@@ -1,5 +1,4 @@
 <?xml version="1.0"?>
-<<<<<<< HEAD
 <robot name="kurt" xmlns:xacro="http://ros.org/wiki/xacro">
 
   <xacro:property name="PI" value="3.14159" />
@@ -12,10 +11,6 @@
         <box size="${size}" />
       </geometry>
     </collision>
-=======
-<robot name="kurt">
-  <link name="body">
->>>>>>> backup gazebo stuff
     <inertial>
       <origin xyz="0.0 0.0 0.0" /> 
       <mass value="1.0" />
@@ -24,7 +19,6 @@
     <visual>
       <origin xyz="0.0 0.0 0.0"/>
       <geometry>
-<<<<<<< HEAD
         <box size="${size}" />
       </geometry>
       <material name="red"><color rgba="1 0 0 1"/></material>
@@ -105,21 +99,6 @@
   <gazebo reference="kurt_wheel_right_back">
     <material>Gazebo/Grey</material>
   </gazebo>
-=======
-        <box size="2.0 1.0 1.0" />
-      </geometry>
-    </visual>
-    <collision>
-      <origin xyz="0.0 0.0 0.0"/>
-      <geometry>
-        <box size="1.0 1.0 1.0" />
-      </geometry>
-    </collision>
-  </link>
-  <gazebo reference="body">
-    <material>Gazebo/Red</material>
-  </gazebo>
->>>>>>> backup gazebo stuff
 </robot>
 
 
