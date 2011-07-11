@@ -162,7 +162,11 @@ int main(int argc, char** argv)
     ROS_ERROR("Can not init CAN");
     return 1;
   }
-/* TODO this does not work well
+/* 
+  Commented out during conversion to socketcan. For some reason, 
+  this doesn't work yet. However, there are enough other places
+  that throw an error message if the communication doesn't work.
+
   long wheel_a, wheel_b;
   int nr_msg;
   nr_msg = 0;
