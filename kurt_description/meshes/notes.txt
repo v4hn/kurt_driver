@@ -1,4 +1,9 @@
-kurt_base_outdoor.dae  -- based on kurt/Blender-Dateien/zwischenspeicher/Outdoor13.blend
-kurt_wheel_outdoor.dae -- based on kurt/Blender-Dateien/fertige/TireO7.blend
+== kurt_base_outdoor.stl ==
+- based on kurt/Blender-Dateien/zwischenspeicher/Outdoor13.blend
+- scaled down by factor 200
+
+== kurt_wheel_outdoor.stl ==
+- based on kurt/Blender-Dateien/fertige/TireO7.blend
+- scaled down by factor 100
 
 
