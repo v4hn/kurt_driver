@@ -1,0 +1,4 @@
+kurt_base_outdoor.dae  -- based on kurt/Blender-Dateien/zwischenspeicher/Outdoor13.blend
+kurt_wheel_outdoor.dae -- based on kurt/Blender-Dateien/fertige/TireO7.blend
+
+
