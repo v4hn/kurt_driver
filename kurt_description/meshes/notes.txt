@@ -4,6 +4,7 @@
 
 == kurt_wheel_outdoor.stl ==
 - based on kurt/Blender-Dateien/fertige/TireO7.blend
-- scaled down by factor 100
+- scaled x, y, z down by factor 100
+- scaled x (width) up again by factor 2
 
 
