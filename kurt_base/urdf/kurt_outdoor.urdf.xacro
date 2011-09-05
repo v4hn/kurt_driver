@@ -1,20 +1,78 @@
 <?xml version="1.0"?>
 <robot
-  xmlns:xacro="http://ros.org/wiki/xacro">
+  xmlns:xacro="http://ros.org/wiki/xacro"
+  name="kurt_outdoor_base">
+
+  <xacro:property name="PI" value="3.14159" />
+
+  <!-- TODO: measure all these values on a real KURT -->
+  <xacro:property name="wheel_width" value="0.04" />
+  <xacro:property name="wheel_radius" value="0.08244" />
+  <xacro:property name="axis_length" value="0.28" />
+  <xacro:property name="middle_axis_length" value="0.37" />
+  <xacro:property name="wheel_x_offset" value="0.14" />
+  <xacro:property name="wheel_z_offset" value="-0.09" />
 
   <link name="base_link">
     <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://kurt_description/meshes/kurt_base_outdoor.stl" />
+      </geometry>
+
+      <material name="red" >
+        <color rgba="1 0 0 1" />
+      </material>
+    </visual>    
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://kurt_description/meshes/kurt_base_outdoor.stl" />
+      </geometry>
+    </collision>    
+    <!-- <visual>
       <geometry>
         <box size=".43 .325 .215" />
       </geometry>
       <material name="red" >
         <color rgba="1 0 0 1" />
       </material>
-    </visual>
-    <collision>
+    </visual> -->
+  </link>
+
+  <xacro:macro name="kurt_wheel" params="name xyz">
+    <link name="kurt_wheel_${name}">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://kurt_description/meshes/kurt_wheel_outdoor.stl" />
+        </geometry>
+
+        <material name="blackish"><color rgba="0.1 0.1 0.1 1"/></material>
+      </visual>    
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://kurt_description/meshes/kurt_wheel_outdoor.stl" />
+        </geometry>
+        <!--
       <geometry>
-        <box size=".43 .325 .215" />
-      </geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}" />
+      </geometry>-->
     </collision>
   </link>
+  <joint name="body_to_wheel_${name}" type="continuous">
+    <origin xyz="${xyz}" rpy="0 0 0" />
+    <parent link="base_link"/>
+    <child link="kurt_wheel_${name}"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+</xacro:macro>
+
+<xacro:kurt_wheel name="left_front" xyz="${wheel_x_offset} ${axis_length/2} ${wheel_z_offset}" />
+<xacro:kurt_wheel name="left_middle" xyz="0 ${middle_axis_length/2} ${wheel_z_offset}" />
+<xacro:kurt_wheel name="left_rear" xyz="${-wheel_x_offset} ${axis_length/2} ${wheel_z_offset}" />
+<xacro:kurt_wheel name="right_front" xyz="${wheel_x_offset} ${-axis_length/2} ${wheel_z_offset}" />
+<xacro:kurt_wheel name="right_middle" xyz="0 ${-middle_axis_length/2} ${wheel_z_offset}" />
+<xacro:kurt_wheel name="right_rear" xyz="${-wheel_x_offset} ${-axis_length/2} ${wheel_z_offset}" />
 </robot>
