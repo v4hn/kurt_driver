@@ -10,7 +10,7 @@
   <joint name="top_base_joint" type="fixed">
     <child link="kurtX_top" />
     <parent link="base_link" />
-    <origin xyz="0 0 0.1075" />
+    <origin xyz="0 0 0.07" />
   </joint>
 
 </robot>
