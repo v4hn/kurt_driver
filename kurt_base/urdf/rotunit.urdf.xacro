@@ -37,7 +37,7 @@
   <joint name="laser_rot_joint" type="continuous">
     <parent link="laser_rot_mount_link" />
     <child link="laser" />
-    <origin xyz="0 0 ${laser_rot_mount_z}" rpy="${-M_PI/2} 0 0" />
+    <origin xyz="0 0 ${laser_rot_mount_z + 0.005}" rpy="${-M_PI/2} 0 0" />
     <axis xyz="0 1 0" />
   </joint>
 

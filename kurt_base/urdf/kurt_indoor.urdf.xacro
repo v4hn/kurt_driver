@@ -8,10 +8,10 @@
   <!-- TODO: measure all these values on a real KURT -->
   <xacro:property name="wheel_width" value="0.02" />
   <xacro:property name="wheel_radius" value="0.060319723" />
-  <xacro:property name="axis_length" value="0.25" />
-  <xacro:property name="middle_axis_length" value="0.25" />
-  <xacro:property name="wheel_x_offset" value="0.12" />
-  <xacro:property name="wheel_z_offset" value="-0.12" />
+  <xacro:property name="axis_length" value="0.26" />
+  <xacro:property name="middle_axis_length" value="0.26" />
+  <xacro:property name="wheel_x_offset" value="0.13" />
+  <xacro:property name="wheel_z_offset" value="-0.10" />
 
   <link name="base_link">
     <visual>
