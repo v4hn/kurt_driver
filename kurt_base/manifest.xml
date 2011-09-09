@@ -1,7 +1,7 @@
 <package>
-  <description brief="kurt_base">
+  <description brief="driver for KURT robots">
 
-     kurt_base
+     This package contains a driver for KURT mobile robot bases and for their laser rotation units.
 
   </description>
   <author>Jochen Sprickerhof</author>
