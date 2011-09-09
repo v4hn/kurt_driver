@@ -14,6 +14,18 @@
         <mesh filename="package://kurt_description/meshes/laptop_structure.dae" />
       </geometry>
     </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://kurt_description/meshes/laptop_structure.dae" />
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="2.0" />
+      <origin xyz="-0.005401183 0.0 0.141356018" />
+      <inertia ixx="0.022277280" ixy="-0.000000004" ixz="-0.001009999" 
+        iyy="0.017783837" iyz="0.0" 
+        izz="0.025523417" />
+    </inertial>
   </link>
 
   <joint name="top_to_structure" type="fixed">

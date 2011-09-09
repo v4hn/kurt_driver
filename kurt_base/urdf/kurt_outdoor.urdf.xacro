@@ -38,6 +38,13 @@
         <color rgba="1 0 0 1" />
       </material>
     </visual> -->
+    <inertial>
+      <mass value="7.0" />
+      <origin xyz="0.0 0.0 -0.040426445" />
+      <inertia ixx="0.053184933" ixy="0.0" ixz="0.0" 
+        iyy="0.086499893" iyz="0.0" 
+        izz="0.107785706" />
+    </inertial>
   </link>
 
   <xacro:macro name="kurt_wheel" params="name xyz">
@@ -60,6 +67,13 @@
         <cylinder length="${wheel_width}" radius="${wheel_radius}" />
       </geometry>-->
     </collision>
+    <inertial>
+      <mass value="0.15" />
+      <origin xyz="0 0 0" />
+      <inertia ixx="0.000177810" ixy="0.0" ixz="0.0" 
+        iyy="0.000332643" iyz="0.0" 
+        izz="0.000177810" />
+    </inertial>  
   </link>
   <joint name="body_to_wheel_${name}" type="continuous">
     <origin xyz="${xyz}" rpy="0 0 0" />

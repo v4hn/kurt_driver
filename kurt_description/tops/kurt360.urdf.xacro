@@ -5,11 +5,16 @@
   <include filename="$(find kurt_description)/common.xacro" />
 
   <include filename="$(find kurt_base)/urdf/rotunit.urdf.xacro" />
-
+  
+  <xacro:property name="top_x" value="0.36" />
+  <xacro:property name="top_y" value="0.28" />
+  <xacro:property name="top_z" value="0.08" />
+  <xacro:property name="top_mass" value="2.0" />
+  
   <link name="kurt360_top">
     <visual>
       <geometry>
-        <box size=".36 .28 .08" />
+        <box size="${top_x} ${top_y} ${top_z}" />
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <material name="silver" >
@@ -18,15 +23,15 @@
     </visual>
     <collision>
       <geometry>
-        <box size=".36 .28 .08" />
+        <box size="${top_x} ${top_y} ${top_z}" />
       </geometry>
     </collision>
+    <xacro:box_inertial x="${top_x}" y="${top_y}" z="${top_z}" mass="${top_mass}" />
   </link>
 
   <joint name="laser_top_joint" type="fixed">
     <child link="laser_rot_mount_link" />
     <parent link="kurt360_top" />
-    <origin xyz="0 0 0.08" rpy="0 0 ${M_PI/2}" />
+    <origin xyz="0 0 ${top_z}" rpy="0 0 ${M_PI/2}" />
   </joint>
-
 </robot>
