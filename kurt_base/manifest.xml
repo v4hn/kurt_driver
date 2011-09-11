@@ -13,6 +13,9 @@
   <depend package="nav_msgs"/>
   <depend package="tf"/>
 
+  <depend package="gazebo_plugins"/>
+  <depend package="kurt_gazebo_plugins"/>
+
 </package>
 
 
