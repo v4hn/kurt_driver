@@ -62,32 +62,39 @@
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="package://kurt_description/meshes/kurt_wheel_indoor.dae" />
+          <!-- <cylinder length="${wheel_width}" radius="${wheel_radius}" /> -->
         </geometry>
-        <!--
-      <geometry>
-        <cylinder length="${wheel_width}" radius="${wheel_radius}" />
-      </geometry>-->
-    </collision>
-    <inertial>
-      <mass value="0.075" />
-      <origin xyz="0 0 0" />
-      <inertia ixx="0.000066031" ixy="0.0" ixz="0.0" 
-        iyy="0.000129786" iyz="0.0" 
-        izz="0.000066031" />
-    </inertial>
-  </link>
-  <joint name="body_to_wheel_${name}" type="continuous">
-    <origin xyz="${xyz}" rpy="0 0 0" />
-    <parent link="base_link"/>
-    <child link="kurt_wheel_${name}"/>
-    <axis xyz="0 1 0"/>
-  </joint>
-</xacro:macro>
+      </collision>
+      <inertial>
+        <mass value="0.075" />
+        <origin xyz="0 0 0" />
+        <inertia ixx="0.000066031" ixy="0.0" ixz="0.0" 
+          iyy="0.000129786" iyz="0.0" 
+          izz="0.000066031" />
+      </inertial>
+    </link>
+    <joint name="body_to_wheel_${name}" type="continuous">
+      <origin xyz="${xyz}" rpy="0 0 0" />
+      <parent link="base_link"/>
+      <child link="kurt_wheel_${name}"/>
+      <axis xyz="0 1 0"/>
+    </joint>
+  </xacro:macro>
 
-<xacro:kurt_wheel name="left_front" xyz="${wheel_x_offset} ${axis_length/2} ${wheel_z_offset}" rotate_visual="1" />
-<xacro:kurt_wheel name="left_middle" xyz="0 ${middle_axis_length/2} ${wheel_z_offset}" rotate_visual="1" />
-<xacro:kurt_wheel name="left_rear" xyz="${-wheel_x_offset} ${axis_length/2} ${wheel_z_offset}" rotate_visual="1" />
-<xacro:kurt_wheel name="right_front" xyz="${wheel_x_offset} ${-axis_length/2} ${wheel_z_offset}" rotate_visual="0" />
-<xacro:kurt_wheel name="right_middle" xyz="0 ${-middle_axis_length/2} ${wheel_z_offset}" rotate_visual="0" />
-<xacro:kurt_wheel name="right_rear" xyz="${-wheel_x_offset} ${-axis_length/2} ${wheel_z_offset}" rotate_visual="0" />
+  <xacro:kurt_wheel name="left_front" xyz="${wheel_x_offset} ${axis_length/2} ${wheel_z_offset}" rotate_visual="1" />
+  <xacro:kurt_wheel name="left_middle" xyz="0 ${middle_axis_length/2} ${wheel_z_offset}" rotate_visual="1" />
+  <xacro:kurt_wheel name="left_rear" xyz="${-wheel_x_offset} ${axis_length/2} ${wheel_z_offset}" rotate_visual="1" />
+  <xacro:kurt_wheel name="right_front" xyz="${wheel_x_offset} ${-axis_length/2} ${wheel_z_offset}" rotate_visual="0" />
+  <xacro:kurt_wheel name="right_middle" xyz="0 ${-middle_axis_length/2} ${wheel_z_offset}" rotate_visual="0" />
+  <xacro:kurt_wheel name="right_rear" xyz="${-wheel_x_offset} ${-axis_length/2} ${wheel_z_offset}" rotate_visual="0" />
+
+  <!-- base_footprint is a fictitious link(frame) that is on the ground right below base_link origin,
+       navigation stack dedpends on this frame -->
+  <link name="base_footprint" />
+
+  <joint name="base_footprint_joint" type="fixed">
+    <origin xyz="0 0 ${-wheel_z_offset + wheel_radius}" rpy="0 0 0" />
+    <parent link="base_footprint"/>
+    <child link="base_link" />
+  </joint>
 </robot>
