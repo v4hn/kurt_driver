@@ -22,4 +22,8 @@
     <param name="vo_used" value="false"/>
     <remap from="imu_data" to="imu/data"/>
   </node>
+
+  <!-- fake localization (needed for ground truth pose publisher) -->
+  <node pkg="tf" type="static_transform_publisher" name="map_to_odom_combined"
+    args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom_combined 40" />
 </launch>

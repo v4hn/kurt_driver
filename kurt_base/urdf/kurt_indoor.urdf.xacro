@@ -70,6 +70,19 @@
     </controller:gazebo_ros_kurt>
   </gazebo>
 
+  <!-- publish ground truth for pose of base_footprint -->
+  <gazebo>
+    <controller:gazebo_ros_p3d name="base_footprint_controller" plugin="libgazebo_ros_p3d.so">
+      <alwaysOn>true</alwaysOn>
+      <updateRate>30.0</updateRate>
+      <bodyName>base_footprint</bodyName>
+      <topicName>base_footprint_pose_ground_truth</topicName>
+      <gaussianNoise>0.0</gaussianNoise>
+      <frameName>map</frameName>
+      <interface:position name="base_footprint_p3d_position_iface" />
+    </controller:gazebo_ros_p3d>
+  </gazebo>
+
   <xacro:macro name="kurt_wheel" params="name xyz rotate_visual">
     <!-- rotate_visual: 0 for right side, 1 for left side -->
     <link name="kurt_wheel_${name}">
