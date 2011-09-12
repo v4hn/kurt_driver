@@ -6,10 +6,4 @@
   <include filename="$(find kurt_base)/urdf/kurt_indoor.urdf.xacro" />
 
   <include filename="$(find kurt_description)/tops/kurt2.urdf.xacro" />
-
-  <joint name="top_base_joint" type="fixed">
-    <origin xyz="0 0 0.03" rpy="0 0 0" />
-    <parent link="base_link" />
-    <child link="kurt_top" />
-  </joint>
 </robot>
