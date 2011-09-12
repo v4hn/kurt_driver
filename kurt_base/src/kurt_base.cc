@@ -162,8 +162,8 @@ int main(int argc, char** argv)
     ROS_ERROR("Can not init CAN");
     return 1;
   }
-/* 
-  Commented out during conversion to socketcan. For some reason, 
+/*
+  Commented out during conversion to socketcan. For some reason,
   this doesn't work yet. However, there are enough other places
   that throw an error message if the communication doesn't work.
 
@@ -721,10 +721,10 @@ void set_wheel_speed2_mc(double _v_l_soll, double _v_r_soll,
   // faktor um nachkommastellen mitzu übertragen, gesendet werden
   // nämlich nur integer werte ([+-]32e3 !)
   const long factor = 100;
-  if (retext = can_speed_cm((int)(_v_l_soll * factor),
+  if ((retext = can_speed_cm((int)(_v_l_soll * factor),
           (int)(_v_r_soll * factor),
           (int)(factor * _omega / M_PI),
-          (int)_AntiWindup)) {
+          (int)_AntiWindup))) {
     ROS_INFO("set_wheel_speed2_mc %s", retext);
   }
 }
