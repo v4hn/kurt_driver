@@ -14,6 +14,7 @@
   <xacro:property name="middle_axis_length" value="0.26" />
   <xacro:property name="wheel_x_offset" value="0.13" />
   <xacro:property name="wheel_z_offset" value="-0.10" />
+  <xacro:property name="turning_adaptation" value="0.60" />  <!-- physical kurt indoor: 0.69 -->
 
   <link name="base_link">
     <visual>
@@ -65,8 +66,9 @@
       <right_rear_wheel_joint>body_to_wheel_right_rear</right_rear_wheel_joint>
       <wheel_separation>${middle_axis_length}</wheel_separation>
       <wheel_diameter>${2*wheel_radius}</wheel_diameter>
+      <turning_adaptation>${turning_adaptation}</turning_adaptation>
       <torque>2.0</torque>
-      <updateRate>1000.0</updateRate>
+      <updateRate>40.0</updateRate>
     </controller:gazebo_ros_kurt>
   </gazebo>
 
