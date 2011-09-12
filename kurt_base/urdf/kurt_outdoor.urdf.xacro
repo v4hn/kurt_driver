@@ -86,7 +86,7 @@
   </gazebo>
 
   <xacro:macro name="kurt_wheel" params="name xyz">
-    <link name="kurt_wheel_${name}">
+    <link name="${name}_wheel_link">
       <visual>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
@@ -113,7 +113,7 @@
     <joint name="${name}_wheel_joint" type="continuous">
       <origin xyz="${xyz}" rpy="0 0 0" />
       <parent link="base_link"/>
-      <child link="kurt_wheel_${name}"/>
+      <child link="${name}_wheel_link"/>
       <axis xyz="0 1 0"/>
     </joint>
     <gazebo reference="kurt_wheel_${name}">
