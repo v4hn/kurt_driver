@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <!-- send rotunit urdf to param server -->
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_base)/urdf/kurt_indoor.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/bases/kurt_indoor.urdf.xacro'" />
   <!-- <include file="$(find kurt_description)/launch/upload_kurt2_indoor.launch" /> -->
   <!-- <include file="$(find kurt_description)/launch/upload_kurt360.launch" /> -->
   <!-- <include file="$(find kurt_description)/launch/upload_kurtX.launch" /> -->

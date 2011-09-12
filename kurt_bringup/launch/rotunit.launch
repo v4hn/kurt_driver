@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_base)/urdf/rotunit.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/parts/rotunit.urdf.xacro'" />
 
   <node pkg="robot_state_publisher" type="state_publisher" name="state_publisher" />
 

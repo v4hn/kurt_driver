@@ -4,7 +4,7 @@
 
   <include filename="$(find kurt_description)/common.xacro" />
 
-  <include filename="$(find kurt_base)/urdf/rotunit.urdf.xacro" />
+  <include filename="$(find kurt_description)/parts/rotunit.urdf.xacro" />
   
   <xacro:property name="top_x" value="0.36" />
   <xacro:property name="top_y" value="0.28" />
