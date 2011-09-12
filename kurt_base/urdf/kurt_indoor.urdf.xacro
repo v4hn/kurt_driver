@@ -1,15 +1,79 @@
 <?xml version="1.0"?>
 <robot
-  xmlns:xacro="http://ros.org/wiki/xacro">
+  xmlns:xacro="http://ros.org/wiki/xacro"
+  name="kurt_outdoor_base">
+
+  <xacro:property name="PI" value="3.14159" />
+
+  <!-- TODO: measure all these values on a real KURT -->
+  <xacro:property name="wheel_width" value="0.02" />
+  <xacro:property name="wheel_radius" value="0.060319723" />
+  <xacro:property name="axis_length" value="0.25" />
+  <xacro:property name="middle_axis_length" value="0.25" />
+  <xacro:property name="wheel_x_offset" value="0.12" />
+  <xacro:property name="wheel_z_offset" value="-0.12" />
 
   <link name="base_link">
     <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <box size=".43 .34 .19" />
+        <mesh filename="package://kurt_description/meshes/kurt_base_indoor.stl" />
       </geometry>
+
       <material name="black" >
-        <color rgba="0 0 0 1" />
+        <color rgba="0.1 0.1 0.1 1" />
       </material>
-    </visual>
+    </visual>    
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://kurt_description/meshes/kurt_base_indoor.stl" />
+      </geometry>
+    </collision>    
+    <!-- <visual>
+      <geometry>
+        <box size=".43 .325 .215" />
+      </geometry>
+      <material name="red" >
+        <color rgba="1 0 0 1" />
+      </material>
+    </visual> -->
   </link>
+
+  <xacro:macro name="kurt_wheel" params="name xyz rotate_visual">
+    <!-- rotate_visual: 0 for right side, 1 for left side -->
+    <link name="kurt_wheel_${name}">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 ${rotate_visual * PI}" />
+        <geometry>
+          <mesh filename="package://kurt_description/meshes/kurt_wheel_indoor.dae" />
+        </geometry>
+
+        <material name="blackish"><color rgba="0.2 0.2 0.2 1"/></material>
+      </visual>    
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="package://kurt_description/meshes/kurt_wheel_indoor.dae" />
+        </geometry>
+        <!--
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}" />
+      </geometry>-->
+    </collision>
+  </link>
+  <joint name="body_to_wheel_${name}" type="continuous">
+    <origin xyz="${xyz}" rpy="0 0 0" />
+    <parent link="base_link"/>
+    <child link="kurt_wheel_${name}"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+</xacro:macro>
+
+<xacro:kurt_wheel name="left_front" xyz="${wheel_x_offset} ${axis_length/2} ${wheel_z_offset}" rotate_visual="1" />
+<xacro:kurt_wheel name="left_middle" xyz="0 ${middle_axis_length/2} ${wheel_z_offset}" rotate_visual="1" />
+<xacro:kurt_wheel name="left_rear" xyz="${-wheel_x_offset} ${axis_length/2} ${wheel_z_offset}" rotate_visual="1" />
+<xacro:kurt_wheel name="right_front" xyz="${wheel_x_offset} ${-axis_length/2} ${wheel_z_offset}" rotate_visual="0" />
+<xacro:kurt_wheel name="right_middle" xyz="0 ${-middle_axis_length/2} ${wheel_z_offset}" rotate_visual="0" />
+<xacro:kurt_wheel name="right_rear" xyz="${-wheel_x_offset} ${-axis_length/2} ${wheel_z_offset}" rotate_visual="0" />
 </robot>
