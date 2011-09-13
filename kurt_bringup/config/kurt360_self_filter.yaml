@@ -7,3 +7,9 @@ self_see_links:
   - name: harting_rot_link
   - name: kurt360_top
   - name: base_link
+  - name: left_front_wheel_link
+  - name: left_middle_wheel_link
+  - name: left_rear_wheel_link
+  - name: right_front_wheel_link
+  - name: right_middle_wheel_link
+  - name: right_rear_wheel_link
