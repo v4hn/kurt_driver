@@ -13,7 +13,7 @@
 
   <node pkg="laser_assembler" type="laser_scan_assembler" name="laser_scan_assembler">
     <param name="max_scans" value="1000" />
-    <param name="fixed_frame" value="/odom" />
+    <param name="fixed_frame" value="/odom_combined" />
   </node>
 
   <node pkg="rotunit_snapshotter" type="rotunit_snapshotter" name="rotunit_snapshotter" />

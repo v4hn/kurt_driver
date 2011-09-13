@@ -206,20 +206,24 @@ int main(int argc, char** argv)
   //ros::Publisher ultrasound_pub = n.advertise<sensor_msgs::Range>("usound", 10);
 
   nav_msgs::Odometry odom;
-  odom.header.frame_id = "odom";
-  odom.child_frame_id = "base_link";
+  odom.header.frame_id = "odom_combined";
+  odom.child_frame_id = "base_footprint";
 
   geometry_msgs::TransformStamped odom_trans;
 
   if (publish_tf)
   {
-    odom_trans.header.frame_id = tf::resolve(tf_prefix, "odom");
-    odom_trans.child_frame_id = tf::resolve(tf_prefix, "base_link");
+    odom_trans.header.frame_id = tf::resolve(tf_prefix, "odom_combined");
+    odom_trans.child_frame_id = tf::resolve(tf_prefix, "base_footprint");
   }
 
   ros::Publisher imu_pub = n.advertise<sensor_msgs::Imu> ("imu", 10);
   sensor_msgs::Imu imu;
+
+  // this is intentionally base_link (the location of the imu) and not base_footprint,
+  // but because they are connected by a fixed link, it doesn't matter
   imu.header.frame_id = "base_link";
+
   imu.angular_velocity_covariance[0] = -1; // no data avilable, see Imu.msg
   imu.linear_acceleration_covariance[0] = -1;
 
