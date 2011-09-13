@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <node pkg="kurt_base" type="kurt_base" name="kurt_base">
+  <node pkg="kurt_base" type="kurt_base" name="kurt_base" output="screen">
     <param name="wheel_perimeter" value="51.8" />
     <param name="axis_length" value="28.0" />
     <param name="turning_adaptation" value="0.46" />
