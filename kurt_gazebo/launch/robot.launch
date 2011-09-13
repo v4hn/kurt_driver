@@ -1,12 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <!-- <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/bases/kurt_indoor.urdf.xacro'" /> -->
-  <!-- <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/bases/kurt_outdoor.urdf.xacro'" /> -->
-  <include file="$(find kurt_description)/launch/upload_kurt2_indoor.launch" />
-  <!-- <include file="$(find kurt_description)/launch/upload_kurt360.launch" /> -->
-  <!-- <include file="$(find kurt_description)/launch/upload_kurtX.launch" /> -->
-  
-  <node name="spawn_kurt_model" pkg="gazebo" type="spawn_model" args="$(optenv ROBOT_INITIAL_POSE) -unpause -urdf -param robot_description -model kurt" respawn="false" output="screen"/>
+  <include file="$(find kurt_gazebo)/launch/spawn_kurt.launch" />
 
   <node pkg="robot_state_publisher" type="state_publisher" name="robot_state_publisher" output="screen">
     <param name="publish_frequency" type="double" value="30.0" />
