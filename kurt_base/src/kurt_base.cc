@@ -7,7 +7,7 @@
 #include <tf/transform_broadcaster.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/Imu.h>
-//#include <sensor_msgs/Range.h>
+#include <sensor_msgs/Range.h>
 
 #include <signal.h>
 #include <stdlib.h>
@@ -58,7 +58,13 @@ double axis_length;
 
 double wheelpos_l = 0.0, wheelpos_r = 0.0;
 
-int IRdist[10], IRnr;
+int ir_back, ir_right_back, ir_right, ir_right_front, ir_left_front, ir_left, ir_left_back;
+int usound;
+// gemessen 3. Mai 2005
+#define IR_MIN 440
+#define IR_MAX 70
+#define SONAR_MIN 0
+#define SONAR_MAX 800
 
 bool read_speed_to_pwm_leerlauf_tabelle(string &filename, int *nr, double **v_pwm_l, double **v_pwm_r);
 void make_pwm_v_tab(int nr, double *v_pwm_l, double *v_pwm_r, int nr_v, int **pwm_v_l, int **pwm_v_r, double *v_max);
@@ -67,7 +73,10 @@ bool k_read_wheel_encoder(long *channel_1, long *channel_2, int *nr_msg);
 bool odometry();
 void populateCovariance(nav_msgs::Odometry &msg);
 void get_gyro();
-bool infrared_sonar();
+void get_ir(int *ir_back, int *ir_right_back, int *ir_right, int *ir_right_front, int *ir_left_front, int *ir_left, int *ir_left_back);
+void get_sonar(int *s);
+void normalize_ir(int *ir);
+void normalize_sonar(int *s);
 void get_tilt();
 void velCallback(const geometry_msgs::Twist::ConstPtr& msg);
 void rotunitCallback(const geometry_msgs::Twist::ConstPtr& msg);
@@ -203,7 +212,7 @@ int main(int argc, char** argv)
 
   ros::Publisher odom_pub = n.advertise<nav_msgs::Odometry> ("odom", 10);
   tf::TransformBroadcaster odom_broadcaster;
-  //ros::Publisher ultrasound_pub = n.advertise<sensor_msgs::Range>("usound", 10);
+  ros::Publisher range_pub = n.advertise<sensor_msgs::Range> ("range", 10);
 
   nav_msgs::Odometry odom;
   odom.header.frame_id = "odom_combined";
@@ -227,20 +236,15 @@ int main(int argc, char** argv)
   imu.angular_velocity_covariance[0] = -1; // no data avilable, see Imu.msg
   imu.linear_acceleration_covariance[0] = -1;
 
-  //TODO add sensor message
-  /*sensor_msgs::Range ultrasound;
-   ultrasound.radiation_type = sensor_msgs::Range::ULTRASOUND;
-   ultrasound.field_of_view = 0;
-   ultrasound.min_range = 0;
-   ultrasound.max_range = 30;*/
+  sensor_msgs::Range range;
 
   while (ros::ok())
   {
     odometry();
     current_time = ros::Time::now();
     get_gyro();
-    //TODO
-    //infrared_sonar();
+    get_ir(&ir_back, &ir_right_back, &ir_right, &ir_right_front, &ir_left_front, &ir_left, &ir_left_back);
+    get_sonar(&usound);
     //get_tilt();
 
     if (!use_gyrodometry)
@@ -286,8 +290,85 @@ int main(int argc, char** argv)
     imu.orientation = tf::createQuaternionMsgFromYaw(theta_from_gyro);
     imu_pub.publish(imu);
 
-    //ultrasound.range = (1.0*IRdist[5])/100.0;
-    //ultrasound_pub.publish(ultrasound);
+    normalize_sonar(&usound);
+    range.header.stamp = current_time;
+    range.header.frame_id = "ultrasound_front";
+    range.radiation_type = sensor_msgs::Range::ULTRASOUND;
+    range.field_of_view = 0;
+    range.min_range = SONAR_MIN;
+    range.max_range = SONAR_MAX;
+    range.range = usound/100.0;
+    range_pub.publish(range);
+
+    normalize_ir(&ir_right_front);
+    range.header.stamp = current_time;
+    range.header.frame_id = "ir_right_front";
+    range.radiation_type = sensor_msgs::Range::INFRARED;
+    range.field_of_view = 0;
+    range.min_range = IR_MIN;
+    range.max_range = IR_MAX;
+    range.range = ir_right_front/100.0;
+    range_pub.publish(range);
+
+    normalize_ir(&ir_right);
+    range.header.stamp = current_time;
+    range.header.frame_id = "ir_right";
+    range.radiation_type = sensor_msgs::Range::INFRARED;
+    range.field_of_view = 0;
+    range.min_range = IR_MIN;
+    range.max_range = IR_MAX;
+    range.range = ir_right/100.0;
+    range_pub.publish(range);
+
+    normalize_ir(&ir_right_back);
+    range.header.stamp = current_time;
+    range.header.frame_id = "ir_right_back";
+    range.radiation_type = sensor_msgs::Range::INFRARED;
+    range.field_of_view = 0;
+    range.min_range = IR_MIN;
+    range.max_range = IR_MAX;
+    range.range = ir_right_back/100.0;
+    range_pub.publish(range);
+
+    normalize_ir(&ir_back);
+    range.header.stamp = current_time;
+    range.header.frame_id = "ir_back";
+    range.radiation_type = sensor_msgs::Range::INFRARED;
+    range.field_of_view = 0;
+    range.min_range = IR_MIN;
+    range.max_range = IR_MAX;
+    range.range = ir_back/100.0;
+    range_pub.publish(range);
+
+    normalize_ir(&ir_left_back);
+    range.header.stamp = current_time;
+    range.header.frame_id = "ir_left_back";
+    range.radiation_type = sensor_msgs::Range::INFRARED;
+    range.field_of_view = 0;
+    range.min_range = IR_MIN;
+    range.max_range = IR_MAX;
+    range.range = ir_left_back/100.0;
+    range_pub.publish(range);
+
+    normalize_ir(&ir_left);
+    range.header.stamp = current_time;
+    range.header.frame_id = "ir_left";
+    range.radiation_type = sensor_msgs::Range::INFRARED;
+    range.field_of_view = 0;
+    range.min_range = IR_MIN;
+    range.max_range = IR_MAX;
+    range.range = ir_left/100.0;
+    range_pub.publish(range);
+
+    normalize_ir(&ir_left_front);
+    range.header.stamp = current_time;
+    range.header.frame_id = "ir_left_front";
+    range.radiation_type = sensor_msgs::Range::INFRARED;
+    range.field_of_view = 0;
+    range.min_range = IR_MIN;
+    range.max_range = IR_MAX;
+    range.range = ir_left_front/100.0;
+    range_pub.publish(range);
 
     joint_state.header.stamp = ros::Time::now();
 
@@ -965,22 +1046,13 @@ void set_wheel_speed2(double _v_l_soll, double _v_r_soll, double _v_l_ist, doubl
   set_wheel_speed1(zl, zr, 0, 0);
 }
 
-// IR related stuff
-// ----------------
-
-// gemessen 3. Mai 2005
-#define IR_MIN 440
-#define IR_MAX 70
-#define SONAR_MIN 0
-#define SONAR_MAX 800
-
-void get_ir(int *ir1, int *ir2, int *ir3, int *ir4, int *ir5, int *ir6, int *ir7)
+void get_ir(int *ir_back, int *ir_right_back, int *ir_right, int *ir_right_front, int *ir_left_front, int *ir_left, int *ir_left_back)
 {
   int dummy;
   unsigned long time;
-  can_sonar0_3(ir1, ir2, ir3, &dummy, &time);
-  can_sonar4_7(ir4, &dummy, ir5, ir6, &time);
-  can_sonar8_9(&dummy, ir7, &time);
+  can_sonar0_3(ir_back, ir_right_back, ir_right_front, &dummy, &time);
+  can_sonar4_7(ir_right_front, &dummy, ir_left_front, ir_left, &time);
+  can_sonar8_9(&dummy, ir_left_back, &time);
 
   return;
 }
@@ -1013,155 +1085,4 @@ void normalize_sonar(int *s)
     return;
   }
   *s = (int)((double)*s * 0.110652 + 11.9231);
-}
-
-#define EDWZ 0.7071067811865475
-bool infrared_sonar()
-{
-  int ir[7]; // infrared sensors
-  int s; // sonar sensor
-  IRnr = 0;
-  double IRx[10], IRz[10];
-
-  get_ir(&ir[0], &ir[1], &ir[2], &ir[3], &ir[4], &ir[5], &ir[6]);
-  get_sonar(&s);
-
-  for (int i = 0; i < 7; i++)
-  {
-    normalize_ir(&ir[i]);
-  }
-  normalize_sonar(&s);
-
-  // back
-  if (ir[0] > 0)
-  {
-    IRdist[IRnr] = ir[0];
-    IRx[IRnr] = 0.0;
-    IRz[IRnr] = -(double)ir[0] - 30.0;
-  }
-  else
-  {
-    IRdist[IRnr] = 0;
-    IRx[IRnr] = 0.0;
-    IRz[IRnr] = 0.0;
-  }
-  // cout << "back " << IRdist[IRnr] << " " << IRx[IRnr] << " " << IRz[IRnr] << endl;
-  IRnr += 1;
-
-  // right-back
-  if (ir[1] > 0)
-  {
-    IRdist[IRnr] = ir[1];
-    IRx[IRnr] = EDWZ * (double)ir[1] + 15.0;
-    IRz[IRnr] = -EDWZ * (double)ir[1] - 30.0;
-  }
-  else
-  {
-    IRdist[IRnr] = 0;
-    IRx[IRnr] = 0.0;
-    IRz[IRnr] = 0.0;
-  }
-  //cout << "right-back " << IRdist[IRnr] << " " << IRx[IRnr] << " " << IRz[IRnr] << endl;
-  IRnr += 1;
-
-  // right
-  if (ir[2] > 0)
-  {
-    IRdist[IRnr] = ir[2];
-    IRx[IRnr] = (double)ir[2] + 15.0;
-    IRz[IRnr] = -10.0;
-  }
-  else
-  {
-    IRdist[IRnr] = 0;
-    IRx[IRnr] = 0.0;
-    IRz[IRnr] = 0.0;
-  }
-  //cout << "right " << IRdist[IRnr] << " " << IRx[IRnr] << " " << IRz[IRnr] << endl;
-  IRnr += 1;
-
-  // right-front
-  if (ir[3] > 0)
-  {
-    IRdist[IRnr] = ir[3];
-    IRx[IRnr] = EDWZ * (double)ir[3] + 15.0;
-    IRz[IRnr] = EDWZ * (double)ir[3] + 5.0;
-  }
-  else
-  {
-    IRdist[IRnr] = 0;
-    IRx[IRnr] = 0.0;
-    IRz[IRnr] = 0.0;
-  }
-  IRnr += 1;
-  //cout << "right-front " << IRdist[IRnr] << " " << IRx[IRnr] << " " << IRz[IRnr] << endl;
-
-  // front
-  if (s > 0)
-  {
-    IRdist[IRnr] = s;
-    IRx[IRnr] = 0.0;
-    IRz[IRnr] = s + 5.0;
-  }
-  else
-  {
-    IRdist[IRnr] = 0;
-    IRx[IRnr] = 0.0;
-    IRz[IRnr] = 0.0;
-  }
-  // cout << "front " << IRdist[IRnr] << " " << IRx[IRnr] << " " << IRz[IRnr] << endl;
-  IRnr += 1;
-
-  // left-front
-  if (ir[4] > 0)
-  {
-    IRdist[IRnr] = ir[4];
-    IRx[IRnr] = -EDWZ * (double)ir[4] - 15.0;
-    IRz[IRnr] = EDWZ * (double)ir[4] + 5.0;
-  }
-  else
-  {
-    IRdist[IRnr] = 0;
-    IRx[IRnr] = 0.0;
-    IRz[IRnr] = 0.0;
-  }
-  // cout << "left-front " << IRdist[IRnr] << " " << IRx[IRnr] << " " << IRz[IRnr] << endl;
-  IRnr += 1;
-
-  // left
-  if (ir[5] > 0)
-  {
-    IRdist[IRnr] = ir[5];
-    IRx[IRnr] = -(double)ir[5] - 15.0;
-    IRz[IRnr] = -10.0;
-  }
-  else
-  {
-    IRdist[IRnr] = 0;
-    IRx[IRnr] = 0.0;
-    IRz[IRnr] = 0.0;
-  }
-  // cout << "left " << IRdist[IRnr] << " " << IRx[IRnr] << " " << IRz[IRnr] << endl;
-  IRnr += 1;
-
-  // left-back
-  if (ir[6] > 0)
-  {
-    IRdist[IRnr] = ir[6];
-    IRx[IRnr] = -EDWZ * (double)ir[6] - 15.0;
-    IRz[IRnr] = -EDWZ * (double)ir[6] - 30.0;
-  }
-  else
-  {
-    IRdist[IRnr] = 0;
-    IRx[IRnr] = 0.0;
-    IRz[IRnr] = 0.0;
-  }
-  //cout << "left-back " << IRdist[IRnr] << " " << IRx[IRnr] << " " << IRz[IRnr] << endl;
-  IRnr += 1;
-
-  if (IRnr > 0)
-    return 1;
-  else
-    return 0;
 }
