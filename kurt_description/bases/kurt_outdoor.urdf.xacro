@@ -5,7 +5,8 @@
   xmlns:xacro="http://ros.org/wiki/xacro"
   name="kurt_outdoor_base">
 
-  <xacro:property name="PI" value="3.14159" />
+  <include filename="$(find kurt_description)/common.xacro" />
+  <include filename="$(find kurt_description)/parts/infrared_sonar.urdf.xacro" />
 
   <!-- TODO: measure all these values on a real KURT -->
   <xacro:property name="wheel_width" value="0.04" />

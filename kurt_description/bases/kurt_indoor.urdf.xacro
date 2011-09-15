@@ -5,7 +5,8 @@
   xmlns:xacro="http://ros.org/wiki/xacro"
   name="kurt_outdoor_base">
 
-  <xacro:property name="PI" value="3.14159" />
+  <include filename="$(find kurt_description)/common.xacro" />
+  <include filename="$(find kurt_description)/parts/infrared_sonar.urdf.xacro" />
 
   <!-- TODO: measure all these values on a real KURT -->
   <xacro:property name="wheel_width" value="0.02" />
@@ -89,7 +90,7 @@
     <!-- rotate_visual: 0 for right side, 1 for left side -->
     <link name="${name}_wheel_link">
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 ${rotate_visual * PI}" />
+        <origin xyz="0 0 0" rpy="0 0 ${rotate_visual * M_PI}" />
         <geometry>
           <mesh filename="package://kurt_description/meshes/kurt_wheel_indoor.dae" />
         </geometry>
