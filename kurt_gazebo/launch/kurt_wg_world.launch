@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
 <launch>
+  <include file="$(find kurt_gazebo)/launch/upload_kurt.launch"/>
+
   <!-- start gazebo with the willow world -->
   <param name="/use_sim_time" value="true" />
 

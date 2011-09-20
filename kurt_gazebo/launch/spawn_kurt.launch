@@ -1,14 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-  <!-- send kurt urdf to param server -->
-  <include file="$(find kurt_description)/launch/upload_kurt2_indoor.launch" />
-  <!-- 
-    <include file="$(find kurt_description)/launch/upload_kurt360.launch" />
-    <include file="$(find kurt_description)/launch/upload_kurtX.launch" />
-    <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/bases/kurt_indoor.urdf.xacro'" />
-    <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/bases/kurt_outdoor.urdf.xacro'" /> 
-  -->
-
   <!-- push robot_description to factory and spawn robot in gazebo -->
   <node name="spawn_kurt_model" pkg="gazebo" type="spawn_model" 
     args="$(optenv ROBOT_INITIAL_POSE) -unpause -urdf -param robot_description -model kurt" respawn="false" output="screen"/>
