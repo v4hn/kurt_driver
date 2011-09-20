@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- send kurt urdf to param server -->
+  <include file="$(find kurt_description)/launch/upload_kurt360.launch" />
+
+  <!-- start gazebo with the willow world -->
+  <param name="/use_sim_time" value="true" />
+
+  <node name="gazebo" pkg="gazebo" type="gazebo" args="-u $(find gazebo_worlds)/worlds/wg_collada.world" respawn="false" output="screen"/>
+
+  <include file="$(find kurt_gazebo)/launch/robot.launch"/>
+
+  <!-- Default Controllers -->
+  <rosparam command="load" file="$(find kurt_gazebo)/config/rotunit_controller.yaml" />
+
+  <!-- Controller manager parameters -->
+  <param name="pr2_controller_manager/mechanism_statistics_publish_rate" value="1.0" />
+  <param name="pr2_controller_manager/joint_state_publish_rate" value="100.0" />
+
+  <!-- Controllers that come up loaded -->
+  <node name="default_loaded_controllers_spawner"
+    pkg="pr2_controller_manager" type="spawner" output="screen"
+    args="--wait-for=/calibrated rotunit_controller" />
+
+  <!-- Fake calibration -->
+  <node pkg="rostopic" type="rostopic" name="fake_joint_calibration"
+    args="pub /calibrated std_msgs/Bool true" />
+
+  <!-- set rotunit speed -->
+  <node pkg="rostopic" type="rostopic" name="command_rotunit_speed"
+    args="pub /rotunit_controller/command std_msgs/Float64 2.0" />
+
+  <include file="$(find kurt_bringup)/launch/rotunit_filter_chain.launch" />
+</launch>
