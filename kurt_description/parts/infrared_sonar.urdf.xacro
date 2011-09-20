@@ -5,60 +5,99 @@
 
   <include filename="$(find kurt_description)/common.xacro" />
 
-  <link name="ultrasound_front" />
-  <link name="ir_right_front" />
-  <link name="ir_right" />
-  <link name="ir_right_back" />
-  <link name="ir_back" />
-  <link name="ir_left_back" />
-  <link name="ir_left" />
-  <link name="ir_left_front" />
+  <link name="ultrasound_front">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 ${M_PI/2} 0" />
+      <geometry>
+        <cylinder radius="0.01" length="0.005"/>
+      </geometry>
+      <material name="yellow">
+        <color rgba="1.0 1.0 0.0 1.0"/>
+      </material>
+    </visual>    
+    <collision>
+      <origin xyz="0 0 0" rpy="0 ${M_PI/2} 0" />
+      <geometry>
+        <cylinder radius="0.01" length="0.005"/>
+      </geometry>
+    </collision>
+    <cylinder_inertial radius="0.01" length="0.005" mass="0.01" />
+  </link>
+
+  <xacro:macro name="ir_sensor" params="name">
+    <link name="${name}">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <box size="0.01 0.02 0.01" />
+        </geometry>
+        <material name="light_grey">
+          <color rgba="0.9 0.9 0.9 1.0"/>
+        </material>
+      </visual>      
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <box size="0.01 0.02 0.01" />
+        </geometry>
+      </collision>
+      <xacro:box_inertial x="0.01" y="0.02" z="0.01" mass="0.01" />
+    </link>
+  </xacro:macro>
+
+  <xacro:ir_sensor name="ir_right_front" />
+  <xacro:ir_sensor name="ir_right" />
+  <xacro:ir_sensor name="ir_right_back" />
+  <xacro:ir_sensor name="ir_back" />
+  <xacro:ir_sensor name="ir_left_back" />
+  <xacro:ir_sensor name="ir_left" />
+  <xacro:ir_sensor name="ir_left_front" />
 
   <joint name="base_ultrasound_front" type="fixed">
     <parent link="base_link" />
     <child link="ultrasound_front" />
-    <origin xyz="0.22 0 0" rpy="0 0 0"/>
+    <origin xyz="0.217 0 0" rpy="0 0 0"/>
   </joint>
 
   <joint name="base_ir_right_front" type="fixed">
     <parent link="base_link" />
     <child link="ir_right_front" />
-    <origin xyz="0.19 -0.14 0" rpy="0 0 ${7/4 * M_PI}"/>
+    <origin xyz="0.203 -0.153 0" rpy="0 0 ${7/4 * M_PI}"/>
   </joint>
 
   <joint name="base_ir_right" type="fixed">
     <parent link="base_link" />
     <child link="ir_right" />
-    <origin xyz="0 -0.17 0" rpy="0 0 ${3/2 * M_PI}"/>
+    <origin xyz="0 -0.165 0" rpy="0 0 ${3/2 * M_PI}"/>
   </joint>
 
   <joint name="base_ir_right_back" type="fixed">
     <parent link="base_link" />
     <child link="ir_right_back" />
-    <origin xyz="-0.19 -0.14 0" rpy="0 0 ${5/4 * M_PI}"/>
+    <origin xyz="-0.203 -0.153 0" rpy="0 0 ${5/4 * M_PI}"/>
   </joint>
 
   <joint name="base_ir_back" type="fixed">
     <parent link="base_link" />
     <child link="ir_back" />
-    <origin xyz="-0.22 0 0" rpy="0 0 ${M_PI}"/>
+    <origin xyz="-0.217 0 0" rpy="0 0 ${M_PI}"/>
   </joint>
 
   <joint name="base_ir_left_back" type="fixed">
     <parent link="base_link" />
     <child link="ir_left_back" />
-    <origin xyz="-0.19 0.14 0" rpy="0 0 ${3/4 * M_PI}"/>
+    <origin xyz="-0.203 0.153 0" rpy="0 0 ${3/4 * M_PI}"/>
   </joint>
 
   <joint name="base_ir_left" type="fixed">
     <parent link="base_link" />
     <child link="ir_left" />
-    <origin xyz="0 0.17 0" rpy="0 0 ${1/2 * M_PI}"/>
+    <origin xyz="0 0.165 0" rpy="0 0 ${1/2 * M_PI}"/>
   </joint>
 
   <joint name="base_ir_left_front" type="fixed">
     <parent link="base_link" />
     <child link="ir_left_front" />
-    <origin xyz="0.19 0.14 0" rpy="0 0 ${1/4 * M_PI}"/>
+    <origin xyz="0.203 0.153 0" rpy="0 0 ${1/4 * M_PI}"/>
   </joint>
 </robot>
