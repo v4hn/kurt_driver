@@ -295,8 +295,8 @@ int main(int argc, char** argv)
     range.header.frame_id = "ultrasound_front";
     range.radiation_type = sensor_msgs::Range::ULTRASOUND;
     range.field_of_view = 0;
-    range.min_range = SONAR_MIN;
-    range.max_range = SONAR_MAX;
+    range.min_range = SONAR_MIN/100.0;
+    range.max_range = SONAR_MAX/100.0;
     range.range = usound/100.0;
     range_pub.publish(range);
 
@@ -305,8 +305,8 @@ int main(int argc, char** argv)
     range.header.frame_id = "ir_right_front";
     range.radiation_type = sensor_msgs::Range::INFRARED;
     range.field_of_view = 0;
-    range.min_range = IR_MIN;
-    range.max_range = IR_MAX;
+    range.min_range = IR_MIN/100.0;
+    range.max_range = IR_MAX/100.0;
     range.range = ir_right_front/100.0;
     range_pub.publish(range);
 
@@ -315,8 +315,8 @@ int main(int argc, char** argv)
     range.header.frame_id = "ir_right";
     range.radiation_type = sensor_msgs::Range::INFRARED;
     range.field_of_view = 0;
-    range.min_range = IR_MIN;
-    range.max_range = IR_MAX;
+    range.min_range = IR_MIN/100.0;
+    range.max_range = IR_MAX/100.0;
     range.range = ir_right/100.0;
     range_pub.publish(range);
 
@@ -325,8 +325,8 @@ int main(int argc, char** argv)
     range.header.frame_id = "ir_right_back";
     range.radiation_type = sensor_msgs::Range::INFRARED;
     range.field_of_view = 0;
-    range.min_range = IR_MIN;
-    range.max_range = IR_MAX;
+    range.min_range = IR_MIN/100.0;
+    range.max_range = IR_MAX/100.0;
     range.range = ir_right_back/100.0;
     range_pub.publish(range);
 
@@ -335,8 +335,8 @@ int main(int argc, char** argv)
     range.header.frame_id = "ir_back";
     range.radiation_type = sensor_msgs::Range::INFRARED;
     range.field_of_view = 0;
-    range.min_range = IR_MIN;
-    range.max_range = IR_MAX;
+    range.min_range = IR_MIN/100.0;
+    range.max_range = IR_MAX/100.0;
     range.range = ir_back/100.0;
     range_pub.publish(range);
 
@@ -345,8 +345,8 @@ int main(int argc, char** argv)
     range.header.frame_id = "ir_left_back";
     range.radiation_type = sensor_msgs::Range::INFRARED;
     range.field_of_view = 0;
-    range.min_range = IR_MIN;
-    range.max_range = IR_MAX;
+    range.min_range = IR_MIN/100.0;
+    range.max_range = IR_MAX/100.0;
     range.range = ir_left_back/100.0;
     range_pub.publish(range);
 
@@ -355,8 +355,8 @@ int main(int argc, char** argv)
     range.header.frame_id = "ir_left";
     range.radiation_type = sensor_msgs::Range::INFRARED;
     range.field_of_view = 0;
-    range.min_range = IR_MIN;
-    range.max_range = IR_MAX;
+    range.min_range = IR_MIN/100.0;
+    range.max_range = IR_MAX/100.0;
     range.range = ir_left/100.0;
     range_pub.publish(range);
 
@@ -365,8 +365,8 @@ int main(int argc, char** argv)
     range.header.frame_id = "ir_left_front";
     range.radiation_type = sensor_msgs::Range::INFRARED;
     range.field_of_view = 0;
-    range.min_range = IR_MIN;
-    range.max_range = IR_MAX;
+    range.min_range = IR_MIN/100.0;
+    range.max_range = IR_MAX/100.0;
     range.range = ir_left_front/100.0;
     range_pub.publish(range);
 
