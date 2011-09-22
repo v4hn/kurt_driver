@@ -16,6 +16,7 @@
   <xacro:property name="wheel_x_offset" value="0.13" />
   <xacro:property name="wheel_z_offset" value="-0.10" />
   <xacro:property name="turning_adaptation" value="0.60" />  <!-- physical kurt indoor: 0.69 -->
+  <xacro:property name="mass" value="15.6" />
 
   <link name="base_link">
     <visual>
@@ -43,11 +44,11 @@
       </material>
     </visual> -->
     <inertial>
-      <mass value="7.0" />
+      <mass value="${mass}" />
       <origin xyz="0.0 0.0 -0.040426445" />
-      <inertia ixx="0.053184933" ixy="0.0" ixz="0.0"
-        iyy="0.086499893" iyz="0.0"
-        izz="0.107785706" />
+      <inertia ixx="${mass * 0.007597848}" ixy="0.0" ixz="0.0"
+        iyy="${mass * 0.012357128}" iyz="0.0"
+        izz="${mass * 0.015397958}" />
     </inertial>
   </link>
 
