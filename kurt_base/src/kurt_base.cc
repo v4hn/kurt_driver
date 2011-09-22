@@ -60,11 +60,16 @@ double wheelpos_l = 0.0, wheelpos_r = 0.0;
 
 int ir_back, ir_right_back, ir_right, ir_right_front, ir_left_front, ir_left, ir_left_back;
 int usound;
-// gemessen 3. Mai 2005
-#define IR_MIN 440
-#define IR_MAX 70
-#define SONAR_MIN 0
-#define SONAR_MAX 800
+
+// values from Sharp GP2D12 IR ranger data sheet
+#define IR_MIN 10 // [cm]
+#define IR_MAX 80 // [cm]
+#define IR_FOV 0.074859848 // [rad]
+
+// values from Baumer UNDK30I6103 ultrasonic data sheet
+#define SONAR_MIN 10  // [cm]
+#define SONAR_MAX 100 // [cm]
+#define SONAR_FOV 0.17809294 // [rad]
 
 bool read_speed_to_pwm_leerlauf_tabelle(string &filename, int *nr, double **v_pwm_l, double **v_pwm_r);
 void make_pwm_v_tab(int nr, double *v_pwm_l, double *v_pwm_r, int nr_v, int **pwm_v_l, int **pwm_v_r, double *v_max);
@@ -294,7 +299,7 @@ int main(int argc, char** argv)
     range.header.stamp = current_time;
     range.header.frame_id = "ultrasound_front";
     range.radiation_type = sensor_msgs::Range::ULTRASOUND;
-    range.field_of_view = 0;
+    range.field_of_view = SONAR_FOV;
     range.min_range = SONAR_MIN/100.0;
     range.max_range = SONAR_MAX/100.0;
     range.range = usound/100.0;
@@ -304,7 +309,7 @@ int main(int argc, char** argv)
     range.header.stamp = current_time;
     range.header.frame_id = "ir_right_front";
     range.radiation_type = sensor_msgs::Range::INFRARED;
-    range.field_of_view = 0;
+    range.field_of_view = IR_FOV;
     range.min_range = IR_MIN/100.0;
     range.max_range = IR_MAX/100.0;
     range.range = ir_right_front/100.0;
@@ -314,7 +319,7 @@ int main(int argc, char** argv)
     range.header.stamp = current_time;
     range.header.frame_id = "ir_right";
     range.radiation_type = sensor_msgs::Range::INFRARED;
-    range.field_of_view = 0;
+    range.field_of_view = IR_FOV;
     range.min_range = IR_MIN/100.0;
     range.max_range = IR_MAX/100.0;
     range.range = ir_right/100.0;
@@ -324,7 +329,7 @@ int main(int argc, char** argv)
     range.header.stamp = current_time;
     range.header.frame_id = "ir_right_back";
     range.radiation_type = sensor_msgs::Range::INFRARED;
-    range.field_of_view = 0;
+    range.field_of_view = IR_FOV;
     range.min_range = IR_MIN/100.0;
     range.max_range = IR_MAX/100.0;
     range.range = ir_right_back/100.0;
@@ -334,7 +339,7 @@ int main(int argc, char** argv)
     range.header.stamp = current_time;
     range.header.frame_id = "ir_back";
     range.radiation_type = sensor_msgs::Range::INFRARED;
-    range.field_of_view = 0;
+    range.field_of_view = IR_FOV;
     range.min_range = IR_MIN/100.0;
     range.max_range = IR_MAX/100.0;
     range.range = ir_back/100.0;
@@ -344,7 +349,7 @@ int main(int argc, char** argv)
     range.header.stamp = current_time;
     range.header.frame_id = "ir_left_back";
     range.radiation_type = sensor_msgs::Range::INFRARED;
-    range.field_of_view = 0;
+    range.field_of_view = IR_FOV;
     range.min_range = IR_MIN/100.0;
     range.max_range = IR_MAX/100.0;
     range.range = ir_left_back/100.0;
@@ -354,7 +359,7 @@ int main(int argc, char** argv)
     range.header.stamp = current_time;
     range.header.frame_id = "ir_left";
     range.radiation_type = sensor_msgs::Range::INFRARED;
-    range.field_of_view = 0;
+    range.field_of_view = IR_FOV;
     range.min_range = IR_MIN/100.0;
     range.max_range = IR_MAX/100.0;
     range.range = ir_left/100.0;
@@ -364,7 +369,7 @@ int main(int argc, char** argv)
     range.header.stamp = current_time;
     range.header.frame_id = "ir_left_front";
     range.radiation_type = sensor_msgs::Range::INFRARED;
-    range.field_of_view = 0;
+    range.field_of_view = IR_FOV;
     range.min_range = IR_MIN/100.0;
     range.max_range = IR_MAX/100.0;
     range.range = ir_left_front/100.0;
@@ -1067,7 +1072,7 @@ void get_sonar(int *s)
 
 void normalize_ir(int *ir)
 {
-  if (*ir > IR_MIN || *ir < IR_MAX)
+  if (*ir < IR_MIN || *ir > IR_MAX)
   {
     *ir = -1;
     return;
