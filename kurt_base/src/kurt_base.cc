@@ -62,13 +62,13 @@ int ir_back, ir_right_back, ir_right, ir_right_front, ir_left_front, ir_left, ir
 int usound;
 
 // values from Sharp GP2D12 IR ranger data sheet
-#define IR_MIN 10 // [cm]
-#define IR_MAX 80 // [cm]
+#define IR_MIN 0.10 // [m]
+#define IR_MAX 0.80 // [m]
 #define IR_FOV 0.074859848 // [rad]
 
 // values from Baumer UNDK30I6103 ultrasonic data sheet
-#define SONAR_MIN 10  // [cm]
-#define SONAR_MAX 100 // [cm]
+#define SONAR_MIN 0.10 // [m]
+#define SONAR_MAX 1.00 // [m]
 #define SONAR_FOV 0.17809294 // [rad]
 
 bool read_speed_to_pwm_leerlauf_tabelle(string &filename, int *nr, double **v_pwm_l, double **v_pwm_r);
@@ -300,9 +300,9 @@ int main(int argc, char** argv)
     range.header.frame_id = "ultrasound_front";
     range.radiation_type = sensor_msgs::Range::ULTRASOUND;
     range.field_of_view = SONAR_FOV;
-    range.min_range = SONAR_MIN/100.0;
-    range.max_range = SONAR_MAX/100.0;
-    range.range = usound/100.0;
+    range.min_range = SONAR_MIN;
+    range.max_range = SONAR_MAX;
+    range.range = usound/1000.0;
     range_pub.publish(range);
 
     normalize_ir(&ir_right_front);
@@ -310,9 +310,9 @@ int main(int argc, char** argv)
     range.header.frame_id = "ir_right_front";
     range.radiation_type = sensor_msgs::Range::INFRARED;
     range.field_of_view = IR_FOV;
-    range.min_range = IR_MIN/100.0;
-    range.max_range = IR_MAX/100.0;
-    range.range = ir_right_front/100.0;
+    range.min_range = IR_MIN;
+    range.max_range = IR_MAX;
+    range.range = ir_right_front/1000.0;
     range_pub.publish(range);
 
     normalize_ir(&ir_right);
@@ -320,9 +320,9 @@ int main(int argc, char** argv)
     range.header.frame_id = "ir_right";
     range.radiation_type = sensor_msgs::Range::INFRARED;
     range.field_of_view = IR_FOV;
-    range.min_range = IR_MIN/100.0;
-    range.max_range = IR_MAX/100.0;
-    range.range = ir_right/100.0;
+    range.min_range = IR_MIN;
+    range.max_range = IR_MAX;
+    range.range = ir_right/1000.0;
     range_pub.publish(range);
 
     normalize_ir(&ir_right_back);
@@ -330,9 +330,9 @@ int main(int argc, char** argv)
     range.header.frame_id = "ir_right_back";
     range.radiation_type = sensor_msgs::Range::INFRARED;
     range.field_of_view = IR_FOV;
-    range.min_range = IR_MIN/100.0;
-    range.max_range = IR_MAX/100.0;
-    range.range = ir_right_back/100.0;
+    range.min_range = IR_MIN;
+    range.max_range = IR_MAX;
+    range.range = ir_right_back/1000.0;
     range_pub.publish(range);
 
     normalize_ir(&ir_back);
@@ -340,9 +340,9 @@ int main(int argc, char** argv)
     range.header.frame_id = "ir_back";
     range.radiation_type = sensor_msgs::Range::INFRARED;
     range.field_of_view = IR_FOV;
-    range.min_range = IR_MIN/100.0;
-    range.max_range = IR_MAX/100.0;
-    range.range = ir_back/100.0;
+    range.min_range = IR_MIN;
+    range.max_range = IR_MAX;
+    range.range = ir_back/1000.0;
     range_pub.publish(range);
 
     normalize_ir(&ir_left_back);
@@ -350,9 +350,9 @@ int main(int argc, char** argv)
     range.header.frame_id = "ir_left_back";
     range.radiation_type = sensor_msgs::Range::INFRARED;
     range.field_of_view = IR_FOV;
-    range.min_range = IR_MIN/100.0;
-    range.max_range = IR_MAX/100.0;
-    range.range = ir_left_back/100.0;
+    range.min_range = IR_MIN;
+    range.max_range = IR_MAX;
+    range.range = ir_left_back/1000.0;
     range_pub.publish(range);
 
     normalize_ir(&ir_left);
@@ -360,9 +360,9 @@ int main(int argc, char** argv)
     range.header.frame_id = "ir_left";
     range.radiation_type = sensor_msgs::Range::INFRARED;
     range.field_of_view = IR_FOV;
-    range.min_range = IR_MIN/100.0;
-    range.max_range = IR_MAX/100.0;
-    range.range = ir_left/100.0;
+    range.min_range = IR_MIN;
+    range.max_range = IR_MAX;
+    range.range = ir_left/1000.0;
     range_pub.publish(range);
 
     normalize_ir(&ir_left_front);
@@ -370,9 +370,9 @@ int main(int argc, char** argv)
     range.header.frame_id = "ir_left_front";
     range.radiation_type = sensor_msgs::Range::INFRARED;
     range.field_of_view = IR_FOV;
-    range.min_range = IR_MIN/100.0;
-    range.max_range = IR_MAX/100.0;
-    range.range = ir_left_front/100.0;
+    range.min_range = IR_MIN;
+    range.max_range = IR_MAX;
+    range.range = ir_left_front/1000.0;
     range_pub.publish(range);
 
     joint_state.header.stamp = ros::Time::now();
@@ -1072,7 +1072,7 @@ void get_sonar(int *s)
 
 void normalize_ir(int *ir)
 {
-  if (*ir < IR_MIN || *ir > IR_MAX)
+  if (*ir < IR_MIN * 1000 || *ir > IR_MAX * 1000) // convert m --> mm
   {
     *ir = -1;
     return;
@@ -1084,7 +1084,7 @@ void normalize_ir(int *ir)
 
 void normalize_sonar(int *s)
 {
-  if (*s < SONAR_MIN || *s > SONAR_MAX)
+  if (*s < SONAR_MIN * 1000 || *s > SONAR_MAX * 1000) // convert m --> mm
   {
     *s = -1;
     return;
