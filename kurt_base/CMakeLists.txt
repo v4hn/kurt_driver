@@ -30,3 +30,4 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #target_link_libraries(example ${PROJECT_NAME})
 
 rosbuild_add_executable(kurt_base src/kurt_base.cc src/kurt2socketcan.cc)
+rosbuild_add_executable(rotunit_state_publisher src/rotunit_state_publisher.cpp src/kurt2socketcan.cc)

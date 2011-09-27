@@ -238,6 +238,7 @@ char *can_read_fifo(void) {
         for (i = 0; i < frame.can_dlc; i++) {
           rec_getrotunit[i] = frame.data[i];
         }
+        //return(0); //TODO for rotunit_state_publisher.cpp because it will loop endless otherwise
         break;
       default:
         sprintf(err, "%s: Unknown CAN ID in can_read_fifo: %X", ERRSOURCE,

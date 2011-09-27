@@ -2,14 +2,17 @@
 <launch>
   <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/parts/rotunit.urdf.xacro'" />
 
+  <node pkg="tf" type="static_transform_publisher" name="rot_to_base"
+    args="0 0 0 0 0 0 /base_link /laser_rot_mount_link 10" />
+
+  <node pkg="tf" type="static_transform_publisher" name="base_to_odom"
+    args="0 0 0 0 0 0 /odom_combined /base_link 10" />
+
   <node pkg="robot_state_publisher" type="state_publisher" name="state_publisher" output="screen" />
+
+  <node pkg="kurt_base" type="rotunit_state_publisher" name="rotunit_state_publisher" output="screen" />
 
   <include file="$(find kurt_bringup)/launch/sick_lms200.launch" />
 
-  <node pkg="laser_assembler" type="laser_scan_assembler" name="laser_scan_assembler" output="screen" >
-    <param name="max_scans" value="1000" />
-    <param name="fixed_frame" value="/laser_rot_mount_link" />
-  </node>
-
-  <node pkg="rotunit_snapshotter" type="rotunit_snapshotter" name="rotunit_snapshotter" output="screen" />
+  <include file="$(find kurt_bringup)/launch/rotunit_filter_chain.launch" />
 </launch>
