@@ -18,6 +18,6 @@
   </node>
 
   <!-- fake localization (needed for ground truth pose publisher) -->
-  <node pkg="tf" type="static_transform_publisher" name="map_to_odom_combined"
-    args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom_combined 40" />
+  <!-- node pkg="tf" type="static_transform_publisher" name="map_to_odom_combined"
+    args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom_combined 40" / -->
 </launch>
