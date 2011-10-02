@@ -5,7 +5,12 @@
   <node pkg="tf" type="static_transform_publisher" name="foot_to_odom"
     args="0 0 0 0 0 0 /odom_combined /base_footprint 10" />
 
-  <node pkg="tf" type="static_transform_publisher" name="left_front_to_base"
+  <!-- simple and elegant, but doesn't work in Gazebo: -->
+  <!-- <node pkg="rostopic" type="rostopic" name="fake_wheel_joint_states"
+    args="pub -r 50 /joint_states sensor_msgs/JointState '{header: auto, name: [left_front_wheel_joint, left_middle_wheel_joint, left_rear_wheel_joint, right_front_wheel_joint, right_middle_wheel_joint, right_rear_wheel_joint], position: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]}'" /> -->
+
+  <!-- doesn't publish correct TFs yet and is ugly: -->
+  <!-- <node pkg="tf" type="static_transform_publisher" name="left_front_to_base"
     args="0 0 0 0 0 0 /base_link /left_front_wheel_link 10" />
 
   <node pkg="tf" type="static_transform_publisher" name="left_middle_to_base"
@@ -21,7 +26,10 @@
     args="0 0 0 0 0 0 /base_link /right_middle_wheel_link 10" />
 
   <node pkg="tf" type="static_transform_publisher" name="left_rear_to_base"
-    args="0 0 0 0 0 0 /base_link /left_rear_wheel_link 10" />
+    args="0 0 0 0 0 0 /base_link /left_rear_wheel_link 10" /> -->
+
+  <!-- works both in Gazebo and on real robot: -->
+  <node pkg="kurt_base" type="fake_wheel_publisher.py" name="fake_wheel_publisher" />
 
   <node pkg="robot_state_publisher" type="state_publisher" name="state_publisher" output="screen" />
 
