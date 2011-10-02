@@ -7,6 +7,7 @@
 
   <include filename="$(find kurt_description)/common.xacro" />
   <include filename="$(find kurt_description)/parts/infrared_sonar.urdf.xacro" />
+  <include filename="$(find kurt_description)/parts/imu.gazebo.urdf.xacro" />
 
   <!-- TODO: measure all these values on a real KURT -->
   <xacro:property name="wheel_width" value="0.04" />
@@ -17,6 +18,7 @@
   <xacro:property name="wheel_z_offset" value="-0.10" />
   <xacro:property name="turning_adaptation" value="0.60" />  <!-- physical kurt outdoor: 0.46 -->
   <xacro:property name="mass" value="15.6" />
+  <xacro:property name="imu_stdev" value="0.00017" />
 
   <link name="base_link">
     <visual>
@@ -86,6 +88,9 @@
       <interface:position name="base_footprint_p3d_position_iface" />
     </controller:gazebo_ros_p3d>
   </gazebo>
+
+  <!-- inertial measurement unit for gazebo -->
+  <xacro:imu_gazebo link="base_link" imu_topic="imu" update_rate="100.0" stdev="${imu_stdev}" />
 
   <xacro:macro name="kurt_wheel" params="name xyz">
     <link name="${name}_wheel_link">
