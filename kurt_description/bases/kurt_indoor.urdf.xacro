@@ -71,7 +71,7 @@
       <wheel_separation>${middle_axis_length}</wheel_separation>
       <wheel_diameter>${2*wheel_radius}</wheel_diameter>
       <turning_adaptation>${turning_adaptation}</turning_adaptation>
-      <torque>2.0</torque>
+      <torque>20.0</torque>
       <updateRate>40.0</updateRate>
     </controller:gazebo_ros_kurt>
   </gazebo>
@@ -118,6 +118,24 @@
           izz="0.000066031" />
       </inertial>
     </link>
+
+    <!-- friction parameters -->
+    <gazebo reference="${name}_wheel_link">
+      <!-- PR2: -->
+      <!-- 
+        <mu1 value="100.0" />
+        <mu2 value="100.0" />
+        <kp  value="1000000.0" />
+        <kd  value="1.0" /> -->
+
+      <!-- Turtlebot: -->
+      <mu1 value="10"/>
+      <mu2 value="10"/>
+      <kp value="100000000.0"/>
+      <kd value="10000.0"/>
+      <fdir value="1 0 0"/>  <!-- see http://answers.ros.org/question/607/rotation-error-in-gazebo-simulation -->
+    </gazebo>
+
     <joint name="${name}_wheel_joint" type="continuous">
       <origin xyz="${xyz}" rpy="0 0 0" />
       <parent link="base_link"/>
