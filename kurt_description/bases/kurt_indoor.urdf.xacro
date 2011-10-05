@@ -3,7 +3,7 @@
   xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
   xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
   xmlns:xacro="http://ros.org/wiki/xacro"
-  name="kurt_outdoor_base">
+  name="kurt_indoor_base">
 
   <include filename="$(find kurt_description)/common.xacro" />
   <include filename="$(find kurt_description)/parts/infrared_sonar.urdf.xacro" />
