@@ -106,7 +106,8 @@
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <mesh filename="package://kurt_description/meshes/kurt_wheel_indoor.dae" />
+          <!-- using STL for collision to fix http://answers.ros.org/question/2368/gazebo-model-wheels-slip-after-upgrade-to-electric -->
+          <mesh filename="package://kurt_description/meshes/kurt_wheel_indoor.stl" />
           <!-- <cylinder length="${wheel_width}" radius="${wheel_radius}" /> -->
         </geometry>
       </collision>
