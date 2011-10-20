@@ -1211,6 +1211,7 @@ void Kurt::ros_send_gyro(double theta)
   imu.header.frame_id = "base_link";
   imu.header.stamp = ros::Time::now();
 
+  //TODO add covariance
   imu.angular_velocity_covariance[0] = -1; // no data avilable, see Imu.msg
   imu.linear_acceleration_covariance[0] = -1;
 
@@ -1240,12 +1241,9 @@ int main(int argc, char** argv)
 
   //Odometry parameter (defaults for kurt2 indoor)
   double wheel_perimeter;
-  nh_ns.param("wheel_perimeter", wheel_perimeter, 37.9);
+  nh_ns.param("wheel_perimeter", wheel_perimeter, 0.379);
   double axis_length;
-  nh_ns.param("axis_length", axis_length, 28.0);
-  // parameter still in cm, converting to meter
-  wheel_perimeter *= 0.01;
-  axis_length *= 0.01;
+  nh_ns.param("axis_length", axis_length, 0.28);
 
   double turning_adaptation;
   nh_ns.param("turning_adaptation", turning_adaptation, 0.69);
@@ -1282,7 +1280,7 @@ int main(int argc, char** argv)
   }
 
   bool publish_tf;
-  nh_ns.param("publish_tf", publish_tf, true);
+  nh_ns.param("publish_tf", publish_tf, false);
   if (publish_tf)
   {
     std::string prefix_param, tf_prefix;

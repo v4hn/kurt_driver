@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
 <launch>
   <node pkg="kurt_base" type="kurt_base" name="kurt_base" output="screen"/>
+  <include file="$(find kurt_base)/launch/ekf.launch" />
 </launch>
