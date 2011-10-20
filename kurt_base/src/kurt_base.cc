@@ -1292,8 +1292,9 @@ int main(int argc, char** argv)
   }
 
   ros::Subscriber cmd_vel_sub = n.subscribe("cmd_vel", 10, &Kurt::velCallback, &kurt);
+  ros::Subscriber rot_vel_sub;
   if (use_rotunit)
-    ros::Subscriber rot_vel_sub = n.subscribe("rot_vel", 10, &Kurt::rotunitCallback, &kurt);
+    rot_vel_sub = n.subscribe("rot_vel", 10, &Kurt::rotunitCallback, &kurt);
 
   kurt.run();
 
