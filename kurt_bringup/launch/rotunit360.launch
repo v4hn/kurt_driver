@@ -33,7 +33,8 @@
 
   <node pkg="robot_state_publisher" type="state_publisher" name="state_publisher" output="screen" />
 
-  <node pkg="kurt_base" type="rotunit_state_publisher" name="rotunit_state_publisher" output="screen" />
+  <node pkg="kurt_base" type="kurt_base" name="kurt_base" output="screen" />
+  <param name="kurt_base/use_rotunit" value="true" />
 
   <include file="$(find kurt_bringup)/launch/sick_lms200.launch" />
 
