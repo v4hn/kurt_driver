@@ -191,7 +191,7 @@ class Kurt
     void run();
     void setPWMData(const std::string &speedPwmLeerlaufTable, double feedforward_turn, double ki, double kp);
 
-    void can_rotunit_send(int speed);
+    void can_rotunit_send(double speed);
 
     //ROS
     void setTFPrefix(const std::string &tf_prefix);
@@ -280,7 +280,7 @@ class Kurt
 Kurt::~Kurt()
 {
   if(use_rotunit_)
-    can_rotunit_send(0);
+    can_rotunit_send(0.0);
   k_hard_stop();
   if(!use_microcontroller_)
   {
@@ -750,13 +750,14 @@ void Kurt::odometry(int wheel_a, int wheel_b)
 
 ////////////////// rotunit //////////////////////////////////////
 
-void Kurt::can_rotunit_send(int speed)
+void Kurt::can_rotunit_send(double speed)
 {
+  int ticks =  (int)(speed / (2.0 * M_PI) * 10240 / 20);
   can_frame frame;
   frame.can_id = CAN_SETROTUNT;
   frame.can_dlc = 8;
-  frame.data[0] = (speed >> 8); //high
-  frame.data[1] = (speed & 0xFF); //low
+  frame.data[0] = (ticks >> 8); //high
+  frame.data[1] = (ticks & 0xFF); //low
   frame.data[2] = 0;
   frame.data[3] = 0;
   frame.data[4] = 0;
@@ -1274,8 +1275,8 @@ int main(int argc, char** argv)
   bool use_rotunit;
   nh_ns.param("use_rotunit", use_rotunit, false);
   if (use_rotunit) {
-    int rotunit_speed;
-    nh_ns.param("InitialSpeed", rotunit_speed, 42);
+    doulbe rotunit_speed;
+    nh_ns.param("rotunit_speed", rotunit_speed, M_PI/6.0);
     kurt.can_rotunit_send(rotunit_speed);
   }
 
