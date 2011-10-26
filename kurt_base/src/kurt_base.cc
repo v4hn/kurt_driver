@@ -32,7 +32,7 @@ class CAN
     bool receive_frame(can_frame *frame);
 
   private:
-    int cansocket; // can raw socket
+    int cansocket_; // can raw socket
 };
 
 CAN::CAN()
@@ -41,8 +41,8 @@ CAN::CAN()
   ifreq ifr;
   char caninterface[] = "can0"; //TODO automatic searching for caninterface
 
-  cansocket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
-  if (cansocket < 0) {
+  cansocket_ = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+  if (cansocket_ < 0) {
     ROS_ERROR("can_init: Error opening socket (%s)", strerror(errno));
     exit(1);
   }
@@ -50,14 +50,14 @@ CAN::CAN()
   addr.can_family = AF_CAN;
 
   strcpy(ifr.ifr_name, caninterface);
-  if (ioctl(cansocket, SIOCGIFINDEX, &ifr) < 0) {
+  if (ioctl(cansocket_, SIOCGIFINDEX, &ifr) < 0) {
     ROS_ERROR("can_init: Error setting SIOCGIFINDEX for interace %s (%s)", caninterface, strerror(errno));
     exit(1);
   }
 
   addr.can_ifindex = ifr.ifr_ifindex;
 
-  if (bind(cansocket, (sockaddr *)&addr, sizeof(addr)) < 0) {
+  if (bind(cansocket_, (sockaddr *)&addr, sizeof(addr)) < 0) {
     ROS_ERROR("can_init: Error binding socket (%s)", strerror(errno));
     exit(1);
   }
@@ -67,13 +67,13 @@ CAN::CAN()
 
 CAN::~CAN()
 {
-  if (close(cansocket) != 0)
+  if (close(cansocket_) != 0)
     ROS_ERROR("can_close: Error closing can socket (%s)", strerror(errno));
 }
 
 bool CAN::send_frame(const can_frame *frame)
 {
-  if (write(cansocket, frame, sizeof(*frame)) != sizeof(*frame))
+  if (write(cansocket_, frame, sizeof(*frame)) != sizeof(*frame))
   {
     ROS_ERROR("send_frame: Error writing socket (%s)", strerror(errno));
     return false;
@@ -86,7 +86,7 @@ bool CAN::receive_frame(can_frame *frame)
   fd_set rfds;
 
   FD_ZERO(&rfds);
-  FD_SET(cansocket, &rfds);
+  FD_SET(cansocket_, &rfds);
 
   int rc = 1;
   timeval timeout;
@@ -94,7 +94,7 @@ bool CAN::receive_frame(can_frame *frame)
   timeout.tv_sec = 5;
   timeout.tv_usec = 0;
 
-  rc = select(cansocket+1, &rfds, NULL, NULL, &timeout);
+  rc = select(cansocket_ + 1, &rfds, NULL, NULL, &timeout);
 
   if (rc == 0)
   {
@@ -108,7 +108,7 @@ bool CAN::receive_frame(can_frame *frame)
   }
 
   //TODO read time stamp
-  if (read(cansocket, frame, sizeof(*frame)) != sizeof(*frame))
+  if (read(cansocket_, frame, sizeof(*frame)) != sizeof(*frame))
   {
     ROS_WARN("receive_frame: Error reading socket (%s)", strerror(errno));
     return false;
@@ -209,7 +209,7 @@ class Kurt
     //PWM data
     const int nr_v_;
     double vmax_;
-    int *pwm_v_l, *pwm_v_r;
+    int *pwm_v_l_, *pwm_v_r_;
     double kp_l, kp_r; // schnell aenderung folgen
     double ki_l, ki_r; // integrierer relative langsam
     int leerlauf_adapt_;
@@ -227,11 +227,11 @@ class Kurt
     ros::NodeHandle n_;
     std::string tf_prefix_;
 
-    tf::TransformBroadcaster odom_broadcaster;
-    ros::Publisher odom_pub;
-    ros::Publisher joint_pub;
-    ros::Publisher range_pub;
-    ros::Publisher imu_pub;
+    tf::TransformBroadcaster odom_broadcaster_;
+    ros::Publisher odom_pub_;
+    ros::Publisher joint_pub_;
+    ros::Publisher range_pub_;
+    ros::Publisher imu_pub_;
 
     //motor
     int can_motor(int left_pwm,  char left_dir,  char left_brake,
@@ -284,17 +284,17 @@ Kurt::~Kurt()
   k_hard_stop();
   if(!use_microcontroller_)
   {
-    free(pwm_v_l);
-    free(pwm_v_r);
+    free(pwm_v_l_);
+    free(pwm_v_r_);
   }
 }
 
 void Kurt::run()
 {
-  odom_pub = n_.advertise<nav_msgs::Odometry> ("odom", 10);
-  range_pub = n_.advertise<sensor_msgs::Range> ("range", 10);
-  imu_pub = n_.advertise<sensor_msgs::Imu> ("imu", 10);
-  joint_pub = n_.advertise<sensor_msgs::JointState> ("joint_states", 1);
+  odom_pub_ = n_.advertise<nav_msgs::Odometry> ("odom", 10);
+  range_pub_ = n_.advertise<sensor_msgs::Range> ("range", 10);
+  imu_pub_ = n_.advertise<sensor_msgs::Imu> ("imu", 10);
+  joint_pub_ = n_.advertise<sensor_msgs::JointState> ("joint_states", 1);
 
   while (ros::ok())
   {
@@ -314,7 +314,7 @@ void Kurt::setPWMData(const std::string &speedPwmLeerlaufTable, double feedforwa
   {
     return;
   }
-  make_pwm_v_tab(nr, v_pwm_l, v_pwm_r, nr_v_, &pwm_v_l, &pwm_v_r, &vmax_);
+  make_pwm_v_tab(nr, v_pwm_l, v_pwm_r, nr_v_, &pwm_v_l_, &pwm_v_r, &vmax_);
   free(v_pwm_l);
   free(v_pwm_r);
   use_microcontroller_ = false;
@@ -382,11 +382,11 @@ void Kurt::set_wheel_speed1(double v_l, double v_r, int integration_l, int integ
 
   // 1023 = zero, 0 = maxspeed
   if (fabs(v_l) > 0.01)
-    pwm_left = std::max(0, std::min(1023, 1024 - pwm_v_l[index_l] - leerlauf_adapt_ - integration_l));
+    pwm_left = std::max(0, std::min(1023, 1024 - pwm_v_l_[index_l] - leerlauf_adapt_ - integration_l));
   else
     pwm_left = 1023;
   if (fabs(v_r) > 0.01)
-    pwm_right = std::max(0, std::min(1023, 1024 - pwm_v_r[index_r] - leerlauf_adapt_ - integration_r));
+    pwm_right = std::max(0, std::min(1023, 1024 - pwm_v_r_[index_r] - leerlauf_adapt_ - integration_r));
   else
     pwm_right = 1023;
 
@@ -1079,7 +1079,7 @@ void Kurt::ros_send_odometry(double z, double x, double theta, double v_encoder,
   odom.twist.twist.angular.z = v_encoder_angular;
   populateCovariance(odom, v_encoder, v_encoder_angular);
 
-  odom_pub.publish(odom);
+  odom_pub_.publish(odom);
 
   if (publish_tf_)
   {
@@ -1093,7 +1093,7 @@ void Kurt::ros_send_odometry(double z, double x, double theta, double v_encoder,
     odom_trans.transform.translation.z = 0.0;
     odom_trans.transform.rotation = tf::createQuaternionMsgFromYaw(-theta);
 
-    odom_broadcaster.sendTransform(odom_trans);
+    odom_broadcaster_.sendTransform(odom_trans);
   }
 
   sensor_msgs::JointState joint_state;
@@ -1113,7 +1113,7 @@ void Kurt::ros_send_odometry(double z, double x, double theta, double v_encoder,
   // note: we reuse joint_state here, i.e., we modify joint_state after publishing.
   // this is only safe as long as nothing in the same process subscribes to the
   // joint_states topic. same for imu above.
-  joint_pub.publish(joint_state);
+  joint_pub_.publish(joint_state);
 }
 
 void Kurt::ros_send_sonar_leftBack(int ir_left_back)
@@ -1127,7 +1127,7 @@ void Kurt::ros_send_sonar_leftBack(int ir_left_back)
   range.min_range = IR_MIN;
   range.max_range = IR_MAX;
   range.range = ir_left_back / 1000.0;
-  range_pub.publish(range);
+  range_pub_.publish(range);
 }
 
 void Kurt::ros_send_sonar_front_usound_leftFront_left(int ir_right_front, int usound, int ir_left_front, int ir_left)
@@ -1141,7 +1141,7 @@ void Kurt::ros_send_sonar_front_usound_leftFront_left(int ir_right_front, int us
   range.min_range = IR_MIN;
   range.max_range = IR_MAX;
   range.range = ir_right_front / 1000.0;
-  range_pub.publish(range);
+  range_pub_.publish(range);
 
   range.header.frame_id = "ultrasound_front";
   range.radiation_type = sensor_msgs::Range::ULTRASOUND;
@@ -1149,7 +1149,7 @@ void Kurt::ros_send_sonar_front_usound_leftFront_left(int ir_right_front, int us
   range.min_range = SONAR_MIN;
   range.max_range = SONAR_MAX;
   range.range = usound / 1000.0;
-  range_pub.publish(range);
+  range_pub_.publish(range);
 
   range.header.frame_id = "ir_left_front";
   range.radiation_type = sensor_msgs::Range::INFRARED;
@@ -1157,7 +1157,7 @@ void Kurt::ros_send_sonar_front_usound_leftFront_left(int ir_right_front, int us
   range.min_range = IR_MIN;
   range.max_range = IR_MAX;
   range.range = ir_left_front / 1000.0;
-  range_pub.publish(range);
+  range_pub_.publish(range);
 
   range.header.frame_id = "ir_left";
   range.radiation_type = sensor_msgs::Range::INFRARED;
@@ -1165,7 +1165,7 @@ void Kurt::ros_send_sonar_front_usound_leftFront_left(int ir_right_front, int us
   range.min_range = IR_MIN;
   range.max_range = IR_MAX;
   range.range = ir_left / 1000.0;
-  range_pub.publish(range);
+  range_pub_.publish(range);
 }
 
 void Kurt::ros_send_sonar_back_rightBack_rightFront(int ir_back, int ir_right_back, int ir_right)
@@ -1179,7 +1179,7 @@ void Kurt::ros_send_sonar_back_rightBack_rightFront(int ir_back, int ir_right_ba
   range.min_range = IR_MIN;
   range.max_range = IR_MAX;
   range.range = ir_back / 1000.0;
-  range_pub.publish(range);
+  range_pub_.publish(range);
 
   range.header.frame_id = "ir_right_back";
   range.radiation_type = sensor_msgs::Range::INFRARED;
@@ -1187,7 +1187,7 @@ void Kurt::ros_send_sonar_back_rightBack_rightFront(int ir_back, int ir_right_ba
   range.min_range = IR_MIN;
   range.max_range = IR_MAX;
   range.range = ir_right_back / 1000.0;
-  range_pub.publish(range);
+  range_pub_.publish(range);
 
   range.header.frame_id = "ir_right";
   range.radiation_type = sensor_msgs::Range::INFRARED;
@@ -1195,7 +1195,7 @@ void Kurt::ros_send_sonar_back_rightBack_rightFront(int ir_back, int ir_right_ba
   range.min_range = IR_MIN;
   range.max_range = IR_MAX;
   range.range = ir_right / 1000.0;
-  range_pub.publish(range);
+  range_pub_.publish(range);
 }
 
 void Kurt::ros_send_pitch_roll(double pitch, double roll)
@@ -1217,7 +1217,7 @@ void Kurt::ros_send_gyro(double theta)
   imu.linear_acceleration_covariance[0] = -1;
 
   imu.orientation = tf::createQuaternionMsgFromYaw(theta);
-  imu_pub.publish(imu);
+  imu_pub_.publish(imu);
 }
 
 void Kurt::ros_send_rotunit(double rot)
@@ -1229,7 +1229,7 @@ void Kurt::ros_send_rotunit(double rot)
   joint_state.name[0] = "laser_rot_joint";
   joint_state.position[0] = rot;
 
-  joint_pub.publish(joint_state);
+  joint_pub_.publish(joint_state);
 }
 
 //////////////// main //////////////////////////////////////////
