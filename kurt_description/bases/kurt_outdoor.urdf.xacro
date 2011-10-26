@@ -11,12 +11,12 @@
 
   <!-- TODO: measure all these values on a real KURT -->
   <xacro:property name="wheel_width" value="0.04" />
-  <xacro:property name="wheel_radius" value="0.08244" />
+  <xacro:property name="wheel_radius" value="0.08244" /> <!-- from physical kurt_outdoor (corresponds to wheel_perimeter=0.518) -->
   <xacro:property name="axis_length" value="0.28" />
-  <xacro:property name="middle_axis_length" value="0.37" />
+  <xacro:property name="middle_axis_length" value="0.39" /> <!-- from physical kurt_outdoor -->
   <xacro:property name="wheel_x_offset" value="0.14" />
   <xacro:property name="wheel_z_offset" value="-0.10" />
-  <xacro:property name="turning_adaptation" value="0.60" />  <!-- physical kurt outdoor: 0.46 -->
+  <xacro:property name="turning_adaptation" value="0.64" /> <!-- from physical kurt_outdoor -->
   <xacro:property name="mass" value="15.6" />
   <xacro:property name="imu_stdev" value="0.00017" />
 
