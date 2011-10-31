@@ -130,11 +130,11 @@ bool CAN::receive_frame(can_frame *frame)
 #define CAN_SETROTUNT  0x00000080 // send rotunit speed
 
 //unused CAN IDs
-#define CAN_INFO_1     0x00000004 // info message
-#define CAN_ADC12_15   0x00000008 // analog input channels: 12 - 15
+#define CAN_INFO_1     0x00000004 // info message (hardware identification, firmware version, loop count): hw_id[2], fw_version[2], loop[4]
+#define CAN_ADC12_15   0x00000008 // analog input channels: 12 - 15, motor current right and left, adc channel 14, board temperature
 #define CAN_BUMPERC    0x0000000A // bumpers and remote control
-#define CAN_DEADRECK   0x0000000B // position (dead reckoning)
-#define CAN_GETSPEED   0x0000000C // current transl. and rot. speed
+#define CAN_DEADRECK   0x0000000B // position as ascertained by odometry: position_x[3], position_y[3], orientation[2]
+#define CAN_GETSPEED   0x0000000C // current transl. and rot. speed (MACS spec say accumulated values of left and right motor's encoders: enc_odo_left[4], enc_odo_right[4]
 #define CAN_BDC00_03   0x00000015 // analog input channels: 0 - 3
 #define CAN_BDC04_07   0x00000016 // analog input channels: 4 - 7
 #define CAN_BDC08_11   0x00000017 // analog input channels: 8 - 11
