@@ -314,7 +314,7 @@ void Kurt::setPWMData(const std::string &speedPwmLeerlaufTable, double feedforwa
   {
     return;
   }
-  make_pwm_v_tab(nr, v_pwm_l, v_pwm_r, nr_v_, &pwm_v_l_, &pwm_v_r, &vmax_);
+  make_pwm_v_tab(nr, v_pwm_l, v_pwm_r, nr_v_, &pwm_v_l_, &pwm_v_r_, &vmax_);
   free(v_pwm_l);
   free(v_pwm_r);
   use_microcontroller_ = false;
@@ -1275,7 +1275,7 @@ int main(int argc, char** argv)
   bool use_rotunit;
   nh_ns.param("use_rotunit", use_rotunit, false);
   if (use_rotunit) {
-    doulbe rotunit_speed;
+    double rotunit_speed;
     nh_ns.param("rotunit_speed", rotunit_speed, M_PI/6.0);
     kurt.can_rotunit_send(rotunit_speed);
   }
