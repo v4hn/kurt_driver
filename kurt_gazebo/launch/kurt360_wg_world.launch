@@ -28,7 +28,7 @@
 
   <!-- set rotunit speed -->
   <node pkg="rostopic" type="rostopic" name="command_rotunit_speed"
-    args="pub /rotunit_controller/command std_msgs/Float64 2.0" />
+    args="pub /rotunit_controller/command std_msgs/Float64 0.5" />
 
   <include file="$(find kurt_bringup)/launch/rotunit_filter_chain.launch" />
 </launch>
