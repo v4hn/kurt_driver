@@ -9,14 +9,13 @@
   <include filename="$(find kurt_description)/parts/infrared_sonar.urdf.xacro" />
   <include filename="$(find kurt_description)/parts/imu.gazebo.urdf.xacro" />
 
-  <!-- TODO: measure all these values on a real KURT -->
-  <xacro:property name="wheel_width" value="0.02" />
-  <xacro:property name="wheel_radius" value="0.060319723" /> <!-- from physical kurt_outdoor (corresponds to wheel_perimeter=0.379) -->
-  <xacro:property name="axis_length" value="0.28" /> <!-- from physical kurt_indoor -->
-  <xacro:property name="middle_axis_length" value="0.28" /> <!-- from physical kurt_indoor -->
-  <xacro:property name="wheel_x_offset" value="0.13" />
-  <xacro:property name="wheel_z_offset" value="-0.10" />
-  <xacro:property name="turning_adaptation" value="0.69" />  <!-- from physical kurt_indoor -->
+  <xacro:property name="wheel_width" value="0.035" />
+  <xacro:property name="wheel_radius" value="0.060319723" /> <!-- corresponds to wheel_perimeter=0.379 -->
+  <xacro:property name="axis_length" value="0.28" />
+  <xacro:property name="middle_axis_length" value="0.28" />
+  <xacro:property name="wheel_x_offset" value="0.14" />
+  <xacro:property name="wheel_z_offset" value="-0.107" />
+  <xacro:property name="turning_adaptation" value="0.69" />
   <xacro:property name="mass" value="15.6" />
   <xacro:property name="imu_stdev" value="0.00017" />
 
