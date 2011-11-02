@@ -5,7 +5,7 @@
   <include filename="$(find kurt_description)/common.xacro" />
 
   <include filename="$(find kurt_description)/parts/rotunit.urdf.xacro" />
-  
+
   <xacro:property name="top_x" value="0.36" />
   <xacro:property name="top_y" value="0.28" />
   <xacro:property name="top_z" value="0.08" />
@@ -18,7 +18,7 @@
       </geometry>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <material name="silver" >
-          <color rgba=".2 .2 .2 1" />
+          <color rgba=".7 .7 .7 1" />
       </material>
     </visual>
     <collision>
@@ -30,8 +30,8 @@
   </link>
 
   <joint name="laser_top_joint" type="fixed">
-    <child link="laser_rot_mount_link" />
+    <child link="rotunit_box_link" />
     <parent link="kurt360_top" />
-    <origin xyz="0 0 ${top_z}" rpy="0 0 ${M_PI/2}" />
+    <origin xyz="0 0 ${top_z/2 + rotunit_box_z/2}" rpy="0 0 0" />
   </joint>
 </robot>

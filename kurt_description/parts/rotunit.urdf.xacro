@@ -9,59 +9,140 @@
 
   <include filename="$(find kurt_description)/parts/sick_lms200.urdf.xacro" />
 
-  <xacro:property name="laser_rot_mount_x" value="0.18" />
-  <xacro:property name="laser_rot_mount_y" value="0.18" />
-  <xacro:property name="laser_rot_mount_z" value="0.143" />
-  <xacro:property name="laser_rot_mount_mass" value="1.5" />
+  <xacro:property name="rotunit_box_x" value="0.18" />
+  <xacro:property name="rotunit_box_y" value="0.18" />
+  <xacro:property name="rotunit_box_z" value="0.107" />
+  <xacro:property name="rotunit_box_mass" value="1.5" />
 
-  <xacro:property name="harting_rot_x" value="0.05" />
-  <xacro:property name="harting_rot_y" value="0.13" />
-  <xacro:property name="harting_rot_z" value="0.06" />
-  <xacro:property name="harting_rot_mass" value="0.2" />
+  <xacro:property name="rotunit_harting_x" value="0.13" />
+  <xacro:property name="rotunit_harting_y" value="0.09" />
+  <xacro:property name="rotunit_harting_z" value="0.06" />
+  <xacro:property name="rotunit_harting_mass" value="0.2" />
 
-  <link name="laser_rot_mount_link">
+  <xacro:property name="rotunit_turntable_radius" value="0.09" />
+  <xacro:property name="rotunit_turntable_length" value="0.015" />
+  <xacro:property name="rotunit_turntable_mass" value="0.1" />
+
+  <xacro:property name="rotunit_support_radius" value="0.021" />
+  <xacro:property name="rotunit_support_length" value="0.032" />
+  <xacro:property name="rotunit_support_mass" value="0.1" />
+
+  <xacro:property name="rotunit_mount_x" value="0.05" />
+  <xacro:property name="rotunit_mount_y" value="0.01" />
+  <xacro:property name="rotunit_mount_z" value="0.20" />
+  <xacro:property name="rotunit_mount_y_offset" value="-0.08" />
+  <xacro:property name="rotunit_mount_mass" value="0.1" />
+
+  <xacro:property name="rotunit_laser_x_offset" value="0.065" />
+  <xacro:property name="rotunit_laser_y_offset" value="-0.015" />
+  <xacro:property name="rotunit_laser_z_offset" value="0.116" />
+
+  <link name="rotunit_box_link">
     <visual>
       <geometry>
-        <box size="${laser_rot_mount_x} ${laser_rot_mount_y} ${laser_rot_mount_z}" />
+        <box size="${rotunit_box_x} ${rotunit_box_y} ${rotunit_box_z}" />
       </geometry>
       <material name="silver" >
-        <color rgba="0.2 0.2 0.2 1" />
+        <color rgba="0.7 0.7 0.7 1" />
       </material>
     </visual>
     <collision>
       <geometry>
-        <box size="${laser_rot_mount_x} ${laser_rot_mount_y} ${laser_rot_mount_z}" />
+        <box size="${rotunit_box_x} ${rotunit_box_y} ${rotunit_box_z}" />
       </geometry>
     </collision>
-    <xacro:box_inertial x="${laser_rot_mount_x}" y="${laser_rot_mount_y}" z="${laser_rot_mount_z}" mass="${laser_rot_mount_mass}" />
+    <xacro:box_inertial x="${rotunit_box_x}" y="${rotunit_box_y}" z="${rotunit_box_z}" mass="${rotunit_box_mass}" />
   </link>
 
-  <joint name="laser_rot_joint" type="continuous">
-    <parent link="laser_rot_mount_link" />
-    <child link="laser" />
-    <origin xyz="0 0 ${laser_rot_mount_z + 0.005}" rpy="${-M_PI/2} 0 0" />
-    <axis xyz="0 1 0" />
-  </joint>
-
-  <link name="harting_rot_link">
+  <link name="rotunit_harting_link">
     <visual>
       <geometry>
-        <box size="${harting_rot_x} ${harting_rot_y} ${harting_rot_z}" />
+        <box size="${rotunit_harting_x} ${rotunit_harting_y} ${rotunit_harting_z}" />
       </geometry>
       <material name="silver" />
     </visual>
     <collision>
       <geometry>
-        <box size="${harting_rot_x} ${harting_rot_y} ${harting_rot_z}" />
+        <box size="${rotunit_harting_x} ${rotunit_harting_y} ${rotunit_harting_z}" />
       </geometry>
     </collision>
-    <xacro:box_inertial x="${harting_rot_x}" y="${harting_rot_y}" z="${harting_rot_z}" mass="${harting_rot_mass}" />
+    <xacro:box_inertial x="${rotunit_harting_x}" y="${rotunit_harting_y}" z="${rotunit_harting_z}" mass="${rotunit_harting_mass}" />
   </link>
 
-  <joint name="harting_rot_joint" type="fixed">
-    <parent link="laser_rot_mount_link" />
-    <child link="harting_rot_link" />
-    <origin xyz="${-laser_rot_mount_x/2 - harting_rot_x/2} 0 0" />
+  <joint name="rotunit_harting_joint" type="fixed">
+    <parent link="rotunit_box_link" />
+    <child link="rotunit_harting_link" />
+    <origin xyz="0 ${rotunit_box_y/2 + rotunit_harting_y/2} 0" />
+  </joint>
+
+ <link name="rotunit_turntable_link">
+    <visual>
+      <geometry>
+        <cylinder radius="${rotunit_turntable_radius}" length="${rotunit_turntable_length}" />
+      </geometry>
+      <material name="silver" />
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${rotunit_turntable_radius}" length="${rotunit_turntable_length}" />
+      </geometry>
+    </collision>
+    <xacro:cylinder_inertial radius="${rotunit_turntable_radius}" length="${rotunit_turntable_length}" mass="${rotunit_turntable_mass}" />
+  </link>
+
+  <joint name="laser_rot_joint" type="continuous">
+    <parent link="rotunit_box_link" />
+    <child link="rotunit_turntable_link" />
+    <origin xyz="0 0 ${rotunit_box_z/2 + rotunit_turntable_length/2 + 0.005}" rpy="${M_PI} 0 0" />
+    <axis xyz="0 0 1" />
+  </joint>
+ 
+  <link name="rotunit_support_link">
+    <visual>
+      <geometry>
+        <cylinder radius="${rotunit_support_radius}" length="${rotunit_support_length}" />
+      </geometry>
+      <material name="silver" />
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${rotunit_support_radius}" length="${rotunit_support_length}" />
+      </geometry>
+    </collision>
+    <xacro:cylinder_inertial radius="${rotunit_support_radius}" length="${rotunit_support_length}" mass="${rotunit_support_mass}" />
+  </link>
+
+  <joint name="rotunit_support_joint" type="fixed">
+    <parent link="rotunit_turntable_link" />
+    <child link="rotunit_support_link" />
+    <origin xyz="0 0 ${-rotunit_turntable_length/2 - rotunit_support_length/2}" rpy="${M_PI} 0 0" />
+  </joint>
+
+  <link name="rotunit_mount_link">
+    <visual>
+      <geometry>
+        <box size="${rotunit_mount_x} ${rotunit_mount_y} ${rotunit_mount_z}" />
+      </geometry>
+      <material name="silver" />
+    </visual>
+    <collision>
+      <geometry>
+        <box size="${rotunit_mount_x} ${rotunit_mount_y} ${rotunit_mount_z}" />
+      </geometry>
+    </collision>
+    <xacro:box_inertial x="${rotunit_mount_x}" y="${rotunit_mount_y}" z="${rotunit_mount_z}" mass="${rotunit_mount_mass}" />
+  </link> 
+
+  <joint name="rotunit_mount_joint" type="fixed">
+    <parent link="rotunit_turntable_link" />
+    <child link="rotunit_mount_link" />
+    <origin xyz="0 ${-rotunit_mount_y_offset} ${-rotunit_turntable_length/2 - rotunit_mount_z/2}" rpy="${M_PI} 0 0" />
+  </joint>
+
+  <joint name="rotunit_laser_joint" type="fixed">
+    <parent link="rotunit_turntable_link" />
+    <child link="laser" />
+    <origin xyz="${rotunit_laser_x_offset} ${-rotunit_laser_y_offset} ${-rotunit_laser_z_offset}" rpy="${M_PI/2} 0 0"/>
   </joint>
 
   <gazebo>
