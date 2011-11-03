@@ -7,7 +7,6 @@ self_see_links:
   - name: rotunit_harting_link
   - name: rotunit_turntable_link
   - name: kurt360_top
-  - name: kurtX_top
   - name: base_link
   - name: left_front_wheel_link
   - name: left_middle_wheel_link

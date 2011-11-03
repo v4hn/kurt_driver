@@ -72,7 +72,7 @@
   <joint name="rotunit_harting_joint" type="fixed">
     <parent link="rotunit_box_link" />
     <child link="rotunit_harting_link" />
-    <origin xyz="0 ${rotunit_box_y/2 + rotunit_harting_y/2} 0" />
+    <origin xyz="0 ${-rotunit_box_y/2 - rotunit_harting_y/2} 0" />
   </joint>
 
  <link name="rotunit_turntable_link">

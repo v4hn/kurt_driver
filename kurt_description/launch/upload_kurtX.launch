@@ -1,4 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-    <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/robots/kurtX.urdf.xacro'" />
-</launch>
