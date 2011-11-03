@@ -10,6 +10,7 @@
   <xacro:property name="top_y" value="0.28" />
   <xacro:property name="top_z" value="0.08" />
   <xacro:property name="top_mass" value="2.0" />
+  <xacro:property name="rotunit_box_y_offset" value="-0.01" />
   
   <link name="kurt360_top">
     <visual>
@@ -32,6 +33,6 @@
   <joint name="laser_top_joint" type="fixed">
     <child link="rotunit_box_link" />
     <parent link="kurt360_top" />
-    <origin xyz="0 0 ${top_z/2 + rotunit_box_z/2}" rpy="0 0 0" />
+    <origin xyz="0 ${rotunit_box_y_offset} ${top_z/2 + rotunit_box_z/2}" rpy="0 0 0" />
   </joint>
 </robot>
