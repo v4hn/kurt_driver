@@ -11,10 +11,10 @@
 
   <xacro:property name="rotunit_box_x" value="0.18" />
   <xacro:property name="rotunit_box_y" value="0.18" />
-  <xacro:property name="rotunit_box_z" value="0.106" />
+  <xacro:property name="rotunit_box_z" value="0.116" />
   <xacro:property name="rotunit_box_mass" value="1.5" />
 
-  <xacro:property name="rotunit_harting_x" value="0.13" />
+  <xacro:property name="rotunit_harting_x" value="0.09" />
   <xacro:property name="rotunit_harting_y" value="0.09" />
   <xacro:property name="rotunit_harting_z" value="0.06" />
   <xacro:property name="rotunit_harting_mass" value="0.2" />
@@ -26,6 +26,10 @@
   <xacro:property name="rotunit_support_radius" value="0.021" />
   <xacro:property name="rotunit_support_length" value="0.028" />
   <xacro:property name="rotunit_support_mass" value="0.1" />
+
+  <xacro:property name="rotunit_connector_radius" value="0.02" />
+  <xacro:property name="rotunit_connector_length" value="0.045" />
+  <xacro:property name="rotunit_connector_mass" value="0.001" />
 
   <xacro:property name="rotunit_mount_x" value="0.05" />
   <xacro:property name="rotunit_mount_y" value="0.01" />
@@ -75,6 +79,27 @@
     <origin xyz="0 ${-rotunit_box_y/2 - rotunit_harting_y/2} 0" />
   </joint>
 
+  <link name="rotunit_connector_link">
+    <visual>
+      <geometry>
+        <cylinder radius="${rotunit_connector_radius}" length="${rotunit_connector_length}" />
+      </geometry>
+      <material name="silver" />
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="${rotunit_connector_radius}" length="${rotunit_connector_length}" />
+      </geometry>
+    </collision>
+    <xacro:cylinder_inertial radius="${rotunit_connector_radius}" length="${rotunit_connector_length}" mass="${rotunit_connector_mass}" />
+  </link>
+
+  <joint name="rotunit_connector_joint" type="fixed">
+    <parent link="rotunit_harting_link" />
+    <child link="rotunit_connector_link" />
+    <origin xyz="${-rotunit_connector_length/2 - rotunit_harting_x/2} ${rotunit_connector_radius - rotunit_harting_y/2} 0" rpy="0 ${M_PI/2} 0" />
+  </joint>
+
  <link name="rotunit_turntable_link">
     <visual>
       <geometry>
@@ -93,7 +118,7 @@
   <joint name="laser_rot_joint" type="continuous">
     <parent link="rotunit_box_link" />
     <child link="rotunit_turntable_link" />
-    <origin xyz="0 0 ${rotunit_box_z/2 + rotunit_turntable_length/2}" rpy="${M_PI} 0 0" />
+    <origin xyz="0 0 ${rotunit_box_z/2 + rotunit_turntable_length/2}" rpy="${M_PI} 0 ${M_PI/2}" />
     <axis xyz="0 0 1" />
   </joint>
  

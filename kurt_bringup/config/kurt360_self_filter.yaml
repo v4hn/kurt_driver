@@ -1,16 +1,17 @@
-min_sensor_dist: .01
+min_sensor_dist: .10
 
-self_see_default_padding: .01
+self_see_default_padding: .02
 
 self_see_links:
   - name: rotunit_box_link
   - name: rotunit_harting_link
+  - name: rotunit_connector_link
   - name: rotunit_turntable_link
   - name: kurt360_top
   - name: base_link
-  - name: left_front_wheel_link
-  - name: left_middle_wheel_link
-  - name: left_rear_wheel_link
-  - name: right_front_wheel_link
-  - name: right_middle_wheel_link
-  - name: right_rear_wheel_link
+#  - name: left_front_wheel_link
+#  - name: left_middle_wheel_link
+#  - name: left_rear_wheel_link
+#  - name: right_front_wheel_link
+#  - name: right_middle_wheel_link
+#  - name: right_rear_wheel_link
