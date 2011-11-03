@@ -4,7 +4,7 @@
   name="kurt360">
 
   <include filename="$(find kurt_description)/bases/kurt_outdoor.urdf.xacro" />
-  <include filename="$(find kurt_description)/tops/kurt360.urdf.xacro" />
+  <include filename="$(find kurt_description)/tops/kurt360_top.urdf.xacro" />
 
   <joint name="top_base_joint" type="fixed">
     <child link="kurt360_top" />

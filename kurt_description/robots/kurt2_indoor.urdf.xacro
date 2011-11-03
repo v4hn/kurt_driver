@@ -4,5 +4,5 @@
   name="kurt2">
 
   <include filename="$(find kurt_description)/bases/kurt_indoor.urdf.xacro" />
-  <include filename="$(find kurt_description)/tops/kurt2.urdf.xacro" />
+  <include filename="$(find kurt_description)/tops/kurt2_top.urdf.xacro" />
 </robot>

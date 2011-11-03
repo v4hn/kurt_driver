@@ -1,10 +1,13 @@
 <?xml version="1.0"?>
 <launch>
-  <!-- send rotunit urdf to param server -->
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/bases/kurt_indoor.urdf.xacro'" />
-  <!-- <include file="$(find kurt_description)/launch/upload_kurt2_indoor.launch" /> -->
-  <!-- <include file="$(find kurt_description)/launch/upload_kurt360.launch" /> -->
-  <!-- <include file="$(find kurt_description)/launch/upload_kurtX.launch" /> -->
+  <include file="$(find kurt_description)/launch/upload_kurt360.launch" />
+  <!-- 
+    <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/bases/kurt_indoor.urdf.xacro'" />
+    <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/bases/kurt_outdoor.urdf.xacro'" />
+    <include file="$(find kurt_description)/launch/upload_kurt2_indoor.launch" />
+    <include file="$(find kurt_description)/launch/upload_kurtX.launch" /> 
+    <include file="$(find kurt_description)/launch/upload_kurtS300.launch" /> 
+  -->
 
   <param name="use_gui" value="True"/>
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
