@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot
+  xmlns:xacro="http://ros.org/wiki/xacro"
+  name="kurt360">
+  
+  <xacro:property name="top_y_offset" value="0.009" />
+  <xacro:property name="base_z_offset" value="0.03" /> <!-- distance from base_link to top of cover surface -->
+
+  <include filename="$(find kurt_description)/bases/kurt_outdoor.urdf.xacro" />
+  <include filename="$(find kurt_description)/tops/kurtana_top.urdf.xacro" />
+
+  <joint name="top_base_joint" type="fixed">
+    <parent link="base_link" />
+    <child link="kurtana_rackplate_link" />
+    <origin xyz="0 ${top_y_offset} ${base_z_offset + rackplate_height/2}" />
+  </joint>
+
+</robot>
