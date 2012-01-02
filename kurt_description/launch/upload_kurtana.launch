@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- send kurtana urdf to param server -->
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/robots/kurtana.urdf.xacro'" />
+</launch>
+
