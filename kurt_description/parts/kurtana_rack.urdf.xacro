@@ -81,12 +81,12 @@
   <joint name="kurtana_pole_joint" type="fixed">
     <parent link="kurtana_baseplate_link"/>
     <child link="kurtana_pole_link"/>
-    <origin xyz="-0.19 0 0"/>
+    <origin xyz="-0.19 0 ${pole_length/2}"/>
   </joint>
 
   <link name="kurtana_pole_link">
     <visual>
-      <origin xyz="0 0 ${pole_length/2}" rpy="0 0 0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
         <cylinder radius="${pole_radius}" length="${pole_length}"/>
       </geometry>
@@ -94,7 +94,7 @@
       <material name="grey" />
     </visual>
     <collision>
-      <origin xyz="0 0 ${pole_length/2}" rpy="0 0 0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
         <cylinder radius="${pole_radius}" length="${pole_length}"/>
       </geometry>
@@ -104,7 +104,7 @@
   <joint name="kurtana_stretch_joint" type="prismatic">
     <parent link="kurtana_pole_link"/>
     <child link="kurtana_poletop_stretch_link"/>
-    <origin xyz="0 0 ${pole_length}" rpy="0 0 0"/> 
+    <origin xyz="0 0 ${poletop_z_offset + pole_length/2 - poletop_length/2}" rpy="0 0 0"/> 
     <limit effort="1000.0" lower="0" upper="${poletop_length - poletop_z_offset}" velocity="0.5"/>
     <axis xyz="0 0 1"/>
   </joint>
@@ -122,14 +122,14 @@
 
   <link name="kurtana_poletop_roll_link">
     <visual>
-      <origin xyz="0 0 ${poletop_z_offset - poletop_length/2}" rpy="0 0 0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
         <cylinder radius="${poletop_radius}" length="${poletop_length}"/>
       </geometry>
       <material name="grey" />
     </visual>
     <collision>
-      <origin xyz="0 0 ${poletop_z_offset - poletop_length/2}" rpy="0 0 0" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
         <cylinder radius="${poletop_radius}" length="${poletop_length}"/>
       </geometry>
@@ -139,7 +139,7 @@
   <joint name="kurtana_pitch_joint" type="revolute">
     <parent link="kurtana_poletop_roll_link" />
     <child link="kurtana_pitchpole_link" />
-    <origin xyz="0 0 ${poletop_z_offset/2}" rpy="0 0 0"/> 
+    <origin xyz="0 0 ${poletop_length/2 - poletop_z_offset/2}" rpy="0 0 0"/> 
     <axis xyz="0 1 0"/> 
     <limit effort="1000.0" lower="${-M_PI/2}" upper="${M_PI/2}" velocity="2.0"/>  
   </joint>
