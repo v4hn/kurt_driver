@@ -18,18 +18,16 @@
   <property name="rackgap" value="0.055" />
   <property name="pole_radius" value="0.025"/>
   <property name="pole_length" value="0.70"/>
-  <property name="poletop_radius" value="0.025"/>
-  <property name="poletop_length" value="0.04"/>
+  <property name="poletop_radius" value="0.02"/>
+  <property name="poletop_length" value="0.555"/>
+  <property name="poletop_z_offset" value="0.04"/>
   <property name="pitchpole_radius" value="0.012"/>
   <property name="pitchpole_length" value="0.23"/>
-  <property name="kinect_length" value="0.30" />
-  <property name="kinect_width" value="0.08" />
-  <property name="kinect_height" value="0.08" />
   <property name="kinect_gap" value="0.015" />
 
-<!-- ******************** -->
-<!-- *** KURTana Rack *** -->
-<!-- ******************** -->
+  <!-- ******************** -->
+  <!-- *** KURTana Rack *** -->
+  <!-- ******************** -->
 
   <link name="kurtana_rackplate_link">
     <visual>
@@ -107,18 +105,11 @@
     <parent link="kurtana_pole_link"/>
     <child link="kurtana_poletop_stretch_link"/>
     <origin xyz="0 0 ${pole_length}" rpy="0 0 0"/> 
-    <limit effort="1000.0" lower="0" upper="0.515" velocity="0.5"/>
-    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <limit effort="1000.0" lower="0" upper="${poletop_length - poletop_z_offset}" velocity="0.5"/>
     <axis xyz="0 0 1"/>
   </joint>
 
   <link name="kurtana_poletop_stretch_link">
-    <collision>
-      <origin xyz="0 0 ${poletop_length/2}" rpy="0 0 0" />
-      <geometry>
-        <cylinder radius="${poletop_radius}" length="${poletop_length}"/>
-      </geometry>
-    </collision>
   </link>
 
   <joint name="kurtana_roll_joint" type="revolute">
@@ -131,16 +122,14 @@
 
   <link name="kurtana_poletop_roll_link">
     <visual>
-      <origin xyz="0 0 ${poletop_length/2}" rpy="0 0 0" />
+      <origin xyz="0 0 ${poletop_z_offset - poletop_length/2}" rpy="0 0 0" />
       <geometry>
         <cylinder radius="${poletop_radius}" length="${poletop_length}"/>
       </geometry>
-      <material name="red">
-        <color rgba="0.8 0.5 0.8 1"/>
-      </material>
+      <material name="grey" />
     </visual>
     <collision>
-      <origin xyz="0 0 ${poletop_length/2}" rpy="0 0 0" />
+      <origin xyz="0 0 ${poletop_z_offset - poletop_length/2}" rpy="0 0 0" />
       <geometry>
         <cylinder radius="${poletop_radius}" length="${poletop_length}"/>
       </geometry>
@@ -150,7 +139,7 @@
   <joint name="kurtana_pitch_joint" type="revolute">
     <parent link="kurtana_poletop_roll_link" />
     <child link="kurtana_pitchpole_link" />
-    <origin xyz="0 0 ${poletop_length/2}" rpy="0 0 0"/> 
+    <origin xyz="0 0 ${poletop_z_offset/2}" rpy="0 0 0"/> 
     <axis xyz="0 1 0"/> 
     <limit effort="1000.0" lower="${-M_PI/2}" upper="${M_PI/2}" velocity="2.0"/>  
   </joint>
