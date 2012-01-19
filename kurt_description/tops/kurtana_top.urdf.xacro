@@ -20,6 +20,7 @@
   <!-- ************************ -->
   
   <include filename="$(find kurt_description)/parts/kinect.urdf.xacro" />
+  <xacro:kinect camera="kinect" />
 
   <joint name="kurtana_kinect_joint" type="fixed">
     <parent link="kurtana_pitchpole_link" />
