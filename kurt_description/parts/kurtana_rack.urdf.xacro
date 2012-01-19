@@ -9,26 +9,27 @@
   <property name="M_PI" value="3.1415926535897931" />
 
   <!-- all values measured by hand - maybe they need to be optimized later -->
-  <property name="rackplate_length" value="0.51" />
+  <property name="rackplate_length" value="0.47" />
   <property name="rackplate_width" value="0.368" />
   <property name="rackplate_height" value="0.023" />
-  <property name="baseplate_length" value="0.51" />
+  <property name="baseplate_length" value="0.47" />
   <property name="baseplate_width" value="0.368" />
   <property name="baseplate_height" value="0.005" />
   <property name="rackgap" value="0.055" />
   <property name="pole_radius" value="0.025"/>
   <property name="pole_length" value="0.70"/>
+  <property name="pole_x_offset" value="-0.165"/>
   <property name="poletop_radius" value="0.02"/>
   <property name="poletop_length" value="0.555"/>
   <property name="poletop_z_offset" value="0.04"/>
   <property name="pitchpole_radius" value="0.012"/>
   <property name="pitchpole_length" value="0.23"/>
-  <property name="kinect_gap" value="0.015" />
 
   <!-- ******************** -->
   <!-- *** KURTana Rack *** -->
   <!-- ******************** -->
 
+  <!-- rackplate = lower plate-->
   <link name="kurtana_rackplate_link">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -55,10 +56,11 @@
     </inertial>
   </link>
 
+  <!-- baseplate = upper plate -->
   <joint name="kurtana_baseplate_joint" type="fixed">
     <parent link="kurtana_rackplate_link"/>
     <child link="kurtana_baseplate_link"/>
-    <origin xyz="0 0 0.055"/>
+    <origin xyz="0 0 ${rackplate_height/2 + rackgap + baseplate_height/2}"/>
   </joint>
 
   <link name="kurtana_baseplate_link">
@@ -78,10 +80,11 @@
     </collision>
   </link>
 
+  <!-- pole = lower, fixed, hollow pole -->
   <joint name="kurtana_pole_joint" type="fixed">
     <parent link="kurtana_baseplate_link"/>
     <child link="kurtana_pole_link"/>
-    <origin xyz="-0.19 0 ${pole_length/2}"/>
+    <origin xyz="${pole_x_offset} 0 ${pole_length/2}"/>
   </joint>
 
   <link name="kurtana_pole_link">
@@ -101,6 +104,7 @@
     </collision>
   </link>
 
+  <!-- poletop = upper, inner, moving pole -->
   <joint name="kurtana_stretch_joint" type="prismatic">
     <parent link="kurtana_pole_link"/>
     <child link="kurtana_poletop_stretch_link"/>
@@ -136,6 +140,7 @@
     </collision>
   </link>
 
+  <!-- pitchpole = horizontal pole on top where kinect is mounted -->
   <joint name="kurtana_pitch_joint" type="revolute">
     <parent link="kurtana_poletop_roll_link" />
     <child link="kurtana_pitchpole_link" />
@@ -159,5 +164,4 @@
       </geometry>
     </collision>
   </link>
-
 </robot>

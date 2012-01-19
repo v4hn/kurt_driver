@@ -14,6 +14,8 @@
   
   <include filename="$(find kurt_description)/parts/kurtana_rack.urdf.xacro" />
 
+  <property name="kinect_x_offset" value="0.025" />
+  <property name="kinect_z_offset" value="0.087" />
 
   <!-- ************************ -->
   <!-- *** Microsoft Kinect *** -->
@@ -25,7 +27,7 @@
   <joint name="kurtana_kinect_joint" type="fixed">
     <parent link="kurtana_pitchpole_link" />
     <child  link="kinect_link" />
-    <origin xyz="${0.0730/2} 0 ${0.0720+kinect_gap}" rpy="0 0 0"/>
+    <origin xyz="${kinect_x_offset} 0 ${kinect_z_offset}" rpy="0 0 0"/>
   </joint>
 
 
