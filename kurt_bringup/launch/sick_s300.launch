@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
   <node pkg="sicks300" type="sick300_driver" name="sick300_driver" output="screen">
-    <param name="devicename" value="/dev/ttyUSB0" />
+    <param name="devicename" value="/dev/scanner" />
     <param name="send_transform" value="false" />
   </node>
 </launch>
