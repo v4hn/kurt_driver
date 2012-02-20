@@ -7,8 +7,6 @@
   <include file="$(find kurt_base)/launch/kurt_outdoor.launch" />
   <param name="kurt_base/use_rotunit" value="true" />
 
-  <include file="$(find kurt_teleop)/launch/cyborgevo.launch" />
-
   <include file="$(find kurt_bringup)/launch/sick_lms200.launch" />
 
   <include file="$(find kurt_bringup)/launch/rotunit_filter_chain.launch" />

@@ -6,7 +6,5 @@
 
   <include file="$(find kurt_base)/launch/kurt_indoor.launch" />
 
-  <include file="$(find kurt_teleop)/launch/cyborgevo.launch" />
-
   <include file="$(find kurt_bringup)/launch/sick_lms200.launch" />
 </launch>
