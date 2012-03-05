@@ -273,7 +273,7 @@ class Kurt
     void ros_send_sonar_back_rightBack_rightFront(int ir_back, int
         ir_right_back, int ir_right);
     void ros_send_pitch_roll(double pitch, double roll);
-    void ros_send_gyro(double theta);
+    void ros_send_gyro(double theta, double sigma);
     void ros_send_rotunit(double rot);
 };
 
@@ -877,13 +877,11 @@ void Kurt::can_gyro_mc1(const can_frame &frame)
     + (frame.data[2] << 8)  + (frame.data[3]);
   double theta = (double)gyro_raw / 4992511.0 * M_PI / 180.0;
 
-  // sigma is not used because its undocumented..
-  // correction factor needed for gyro_sigma
-  /*double sigma_deg = (double)((frame.data[4] << 24) + (frame.data[5] << 16)
+  double sigma_deg = (double)((frame.data[4] << 24) + (frame.data[5] << 16)
       + (frame.data[6] << 8)  + (frame.data[7])) / 10000;
 
   double tmp = (sqrt(sigma_deg) * M_PI / 180.0);
-  double sigma = tmp * tmp;*/
+  double sigma = tmp * tmp;
 
   // wait until gyro is stable
   if (gyro_offset_read++ < 100)
@@ -906,7 +904,7 @@ void Kurt::can_gyro_mc1(const can_frame &frame)
   if (theta >  M_PI) theta -= 2.0 * M_PI;
   if (theta < -M_PI) theta += 2.0 * M_PI;
 
-  ros_send_gyro(theta);
+  ros_send_gyro(theta, sigma);
 }
 
 void Kurt::can_read_fifo()
@@ -1203,7 +1201,7 @@ void Kurt::ros_send_pitch_roll(double pitch, double roll)
   //TODO
 }
 
-void Kurt::ros_send_gyro(double theta)
+void Kurt::ros_send_gyro(double theta, double sigma)
 {
   sensor_msgs::Imu imu;
 
@@ -1212,11 +1210,13 @@ void Kurt::ros_send_gyro(double theta)
   imu.header.frame_id = "base_link";
   imu.header.stamp = ros::Time::now();
 
-  //TODO add covariance
   imu.angular_velocity_covariance[0] = -1; // no data avilable, see Imu.msg
   imu.linear_acceleration_covariance[0] = -1;
 
   imu.orientation = tf::createQuaternionMsgFromYaw(theta);
+  imu.orientation_covariance[0] = sigma;
+  imu.orientation_covariance[4] = sigma;
+  imu.orientation_covariance[8] = sigma;
   imu_pub_.publish(imu);
 }
 
