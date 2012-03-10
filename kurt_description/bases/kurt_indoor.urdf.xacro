@@ -60,7 +60,9 @@
   <gazebo>
     <controller:gazebo_ros_kurt name="kurt_controller" plugin="libgazebo_ros_kurt.so">
       <alwaysOn>true</alwaysOn>
-      <!-- <node_namespace>kurt_controller</node_namespace> -->
+      <cmd_vel_topic_name>cmd_vel</cmd_vel_topic_name>
+      <odom_topic_name>odom</odom_topic_name>
+      <joint_states_topic_name>joint_states</joint_states_topic_name>
       <left_front_wheel_joint>left_front_wheel_joint</left_front_wheel_joint>
       <left_middle_wheel_joint>left_middle_wheel_joint</left_middle_wheel_joint>
       <left_rear_wheel_joint>left_rear_wheel_joint</left_rear_wheel_joint>
