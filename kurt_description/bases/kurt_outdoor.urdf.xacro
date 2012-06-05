@@ -72,7 +72,7 @@
       <wheel_separation>${middle_axis_length}</wheel_separation>
       <wheel_diameter>${2*wheel_radius}</wheel_diameter>
       <turning_adaptation>${turning_adaptation}</turning_adaptation>
-      <torque>2.0</torque>
+      <torque>4.0</torque>
       <updateRate>40.0</updateRate>
     </controller:gazebo_ros_kurt>
   </gazebo>
