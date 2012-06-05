@@ -73,6 +73,7 @@
       <wheel_diameter>${2*wheel_radius}</wheel_diameter>
       <turning_adaptation>${turning_adaptation}</turning_adaptation>
       <torque>4.0</torque>
+      <max_velocity>1.3</max_velocity>
       <updateRate>40.0</updateRate>
     </controller:gazebo_ros_kurt>
   </gazebo>
