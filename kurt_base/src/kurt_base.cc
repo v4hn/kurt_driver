@@ -681,13 +681,15 @@ void Kurt::odometry(int wheel_a, int wheel_b)
   double time_diff = 0.01;
 
   // store wheel position for published joint states
-  double wheelpos_l = 2.0 * M_PI * wheel_a / ticks_per_turn_of_wheel_;
+  static double wheelpos_l = 0;
+  wheelpos_l += 2.0 * M_PI * wheel_a / ticks_per_turn_of_wheel_;
   if (wheelpos_l > M_PI)
     wheelpos_l -= 2.0 * M_PI;
   if (wheelpos_l < -M_PI)
     wheelpos_l += 2.0 * M_PI;
 
-  double wheelpos_r = 2 * M_PI * wheel_b / ticks_per_turn_of_wheel_;
+  static double wheelpos_r = 0;
+  wheelpos_r += 2 * M_PI * wheel_b / ticks_per_turn_of_wheel_;
   if (wheelpos_r > M_PI)
     wheelpos_r -= 2.0 * M_PI;
   if (wheelpos_r < -M_PI)
