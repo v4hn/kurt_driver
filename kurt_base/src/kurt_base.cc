@@ -178,6 +178,10 @@ class Kurt
       leerlauf_adapt_(0),
       v_encoder_left_(0.0),
       v_encoder_right_(0.0),
+      v_l_soll_(0.0),
+      v_r_soll_(0.0),
+      AntiWindup_(1.0),
+      last_cmd_vel_time_(0.0),
       turning_adaptation_(turning_adaptation),
       ticks_per_turn_of_wheel_(ticks_per_turn_of_wheel),
       sigma_x_(sigma_x),
@@ -197,6 +201,7 @@ class Kurt
     //ROS
     void setTFPrefix(const std::string &tf_prefix);
     void velCallback(const geometry_msgs::Twist::ConstPtr &msg);
+    void pidCallback(const ros::TimerEvent& event);
     void rotunitCallback(const geometry_msgs::Twist::ConstPtr &msg);
 
   private:
@@ -217,6 +222,9 @@ class Kurt
     double feedforward_turn_; // in v = m/s
     // speed from encoder in m/s
     double v_encoder_left_, v_encoder_right_;
+    double v_l_soll_, v_r_soll_;
+    double AntiWindup_;
+    ros::Time last_cmd_vel_time_;
 
     //odometry
     double turning_adaptation_;
@@ -424,7 +432,7 @@ void Kurt::set_wheel_speed2(double _v_l_soll, double _v_r_soll, double _v_l_ist,
   // differenzieren
   static double del = 0.0, der = 0.0;
   // zeitinterval
-  double dt = 0.1;
+  double dt = 0.01;
   // filter fuer gueltige Werte
   static double last_v_l_ist = 0.0, last_v_r_ist = 0.0;
   // static int reached = 0;
@@ -434,9 +442,6 @@ void Kurt::set_wheel_speed2(double _v_l_soll, double _v_r_soll, double _v_l_ist,
   static double f_v_l_ist, f_v_r_ist;
   // kd_l and kd_r allways 0 (using only pi controller here)
   double kd_l = 0.0, kd_r = 0.0; // nur pi regler d-anteil ausblenden
-
-  //TODO use timer
-  dt = 0.01;
 
   int_el *= _AntiWindup;
   int_er *= _AntiWindup;
@@ -483,7 +488,6 @@ void Kurt::set_wheel_speed2(double _v_l_soll, double _v_r_soll, double _v_l_ist,
       for (i = 0; i < 3; i++)
       {
         v_r_list[2 - i] = v_r_list[MAX_V_LIST - i - 1];
-        ;
       }
     }
 
@@ -677,7 +681,6 @@ void Kurt::make_pwm_v_tab(int nr, double *v_pwm_l, double *v_pwm_r, int nr_v, in
 
 void Kurt::odometry(int wheel_a, int wheel_b)
 {
-  //TODO use timer
   // time_diff in sec; we hope kurt is precise ?? !! and sends every 10 ms
   double time_diff = 0.01;
 
@@ -987,13 +990,28 @@ void Kurt::setTFPrefix(const std::string &tf_prefix)
 
 void Kurt::velCallback(const geometry_msgs::Twist::ConstPtr& msg)
 {
-  double AntiWindup = 1.0;
-  double v_l_soll = msg->linear.x - axis_length_ * msg->angular.z /*/ wheelRadius*/;
-  double v_r_soll = msg->linear.x + axis_length_ * msg->angular.z/*/wheelRadius*/;
+  AntiWindup_ = 1.0;
+  last_cmd_vel_time_ = ros::Time::now();
+  v_l_soll_ = msg->linear.x - axis_length_ * msg->angular.z /*/ wheelRadius*/;
+  v_r_soll_ = msg->linear.x + axis_length_ * msg->angular.z/*/wheelRadius*/;
 
   if (msg->linear.x == 0 && msg->angular.z == 0)
   {
-    AntiWindup = 0.0;
+    AntiWindup_ = 0.0;
+  }
+}
+
+void Kurt::pidCallback(const ros::TimerEvent& event)
+{
+  double v_l_soll = 0.0;
+  double v_r_soll = 0.0;
+  double AntiWindup = 1.0;
+
+  if (ros::Time::now() - last_cmd_vel_time_ < ros::Duration(0.6))
+  {
+    v_l_soll = v_l_soll_;
+    v_r_soll = v_r_soll_;
+    AntiWindup = AntiWindup_;
   }
 
   if (use_microcontroller_)
@@ -1292,6 +1310,7 @@ int main(int argc, char** argv)
     kurt.setTFPrefix(tf_prefix);
   }
 
+  ros::Timer pid_timer = n.createTimer(ros::Duration(0.01), &Kurt::pidCallback, &kurt);
   ros::Subscriber cmd_vel_sub = n.subscribe("cmd_vel", 10, &Kurt::velCallback, &kurt);
   ros::Subscriber rot_vel_sub;
   if (use_rotunit)
