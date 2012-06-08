@@ -3,6 +3,7 @@
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/transform_broadcaster.h>
+#include <tf/transform_listener.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/Range.h>
@@ -1286,9 +1287,8 @@ int main(int argc, char** argv)
   nh_ns.param("publish_tf", publish_tf, false);
   if (publish_tf)
   {
-    std::string prefix_param, tf_prefix;
-    n.searchParam("tf_prefix", prefix_param);
-    n.getParam(prefix_param, tf_prefix);
+    std::string tf_prefix;
+    tf_prefix = tf::getPrefixParam(nh_ns);
     kurt.setTFPrefix(tf_prefix);
   }
 
