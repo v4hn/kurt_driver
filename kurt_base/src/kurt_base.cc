@@ -707,8 +707,8 @@ void Kurt::odometry(int wheel_a, int wheel_b)
   v_encoder_left_ = wheel_L / time_diff;
   v_encoder_right_ = wheel_R / time_diff;
   double v_encoder = (v_encoder_right_ + v_encoder_left_) * 0.5;
-  // mehr Bahn als Winkelgeschwindigkeit
-  double v_encoder_angular = (v_encoder_right_ - v_encoder_left_) * 0.5;
+  // angular velocity in rad/s
+  double v_encoder_angular = (v_encoder_right_ - v_encoder_left_) / axis_length_ * turning_adaptation_;
 
   // calc position deltas
   double local_dx, local_dz, dtheta_y = 0.0;
