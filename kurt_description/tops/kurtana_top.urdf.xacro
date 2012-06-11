@@ -37,6 +37,7 @@
   <!-- ************************* -->
   
   <include filename="$(find sick_tim3xx)/urdf/sick_tim3xx.urdf.xacro" />
+  <xacro:sick_tim3xx laser_link="laser" />
 
   <joint name="kurtana_laser_joint" type="fixed">
     <parent link="kurtana_baseplate_link" />
