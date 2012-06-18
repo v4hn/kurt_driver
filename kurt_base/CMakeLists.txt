@@ -30,3 +30,5 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #target_link_libraries(example ${PROJECT_NAME})
 
 rosbuild_add_executable(kurt_base src/can.cc src/kurt.cc src/kurt_base.cc)
+rosbuild_add_executable(speedtable src/can.cc src/kurt.cc src/mytime.cc src/speedtable.cc)
+rosbuild_add_executable(countticks src/can.cc src/kurt.cc src/mytime.cc src/countticks.cc)
