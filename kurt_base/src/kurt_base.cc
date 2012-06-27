@@ -204,7 +204,7 @@ void ROSComm::send_sonar_leftBack(int ir_left_back)
   range.field_of_view = IR_FOV;
   range.min_range = IR_MIN;
   range.max_range = IR_MAX;
-  range.range = ir_left_back / 1000.0;
+  range.range = ir_left_back / 100.0;
   range_pub_.publish(range);
 }
 
@@ -218,7 +218,7 @@ void ROSComm::send_sonar_front_usound_leftFront_left(int ir_right_front, int uso
   range.field_of_view = IR_FOV;
   range.min_range = IR_MIN;
   range.max_range = IR_MAX;
-  range.range = ir_right_front / 1000.0;
+  range.range = ir_right_front / 100.0;
   range_pub_.publish(range);
 
   range.header.frame_id = "ultrasound_front";
@@ -226,7 +226,7 @@ void ROSComm::send_sonar_front_usound_leftFront_left(int ir_right_front, int uso
   range.field_of_view = SONAR_FOV;
   range.min_range = SONAR_MIN;
   range.max_range = SONAR_MAX;
-  range.range = usound / 1000.0;
+  range.range = usound / 100.0;
   range_pub_.publish(range);
 
   range.header.frame_id = "ir_left_front";
@@ -234,7 +234,7 @@ void ROSComm::send_sonar_front_usound_leftFront_left(int ir_right_front, int uso
   range.field_of_view = IR_FOV;
   range.min_range = IR_MIN;
   range.max_range = IR_MAX;
-  range.range = ir_left_front / 1000.0;
+  range.range = ir_left_front / 100.0;
   range_pub_.publish(range);
 
   range.header.frame_id = "ir_left";
@@ -242,7 +242,7 @@ void ROSComm::send_sonar_front_usound_leftFront_left(int ir_right_front, int uso
   range.field_of_view = IR_FOV;
   range.min_range = IR_MIN;
   range.max_range = IR_MAX;
-  range.range = ir_left / 1000.0;
+  range.range = ir_left / 100.0;
   range_pub_.publish(range);
 }
 
@@ -256,7 +256,7 @@ void ROSComm::send_sonar_back_rightBack_rightFront(int ir_back, int ir_right_bac
   range.field_of_view = IR_FOV;
   range.min_range = IR_MIN;
   range.max_range = IR_MAX;
-  range.range = ir_back / 1000.0;
+  range.range = ir_back / 100.0;
   range_pub_.publish(range);
 
   range.header.frame_id = "ir_right_back";
@@ -264,7 +264,7 @@ void ROSComm::send_sonar_back_rightBack_rightFront(int ir_back, int ir_right_bac
   range.field_of_view = IR_FOV;
   range.min_range = IR_MIN;
   range.max_range = IR_MAX;
-  range.range = ir_right_back / 1000.0;
+  range.range = ir_right_back / 100.0;
   range_pub_.publish(range);
 
   range.header.frame_id = "ir_right";
@@ -272,7 +272,7 @@ void ROSComm::send_sonar_back_rightBack_rightFront(int ir_back, int ir_right_bac
   range.field_of_view = IR_FOV;
   range.min_range = IR_MIN;
   range.max_range = IR_MAX;
-  range.range = ir_right / 1000.0;
+  range.range = ir_right / 100.0;
   range_pub_.publish(range);
 }
 
