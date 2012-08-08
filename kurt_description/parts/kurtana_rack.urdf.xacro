@@ -14,11 +14,11 @@
   <property name="rackplate_height" value="0.023" />
   <property name="baseplate_length" value="0.47" />
   <property name="baseplate_width" value="0.368" />
-  <property name="baseplate_height" value="0.005" />
+  <property name="baseplate_height" value="0.006" />
   <property name="rackgap" value="0.055" />
   <property name="pole_radius" value="0.025"/>
   <property name="pole_length" value="0.70"/>
-  <property name="pole_x_offset" value="-0.165"/>
+  <property name="pole_x_offset" value="-0.15"/>
   <property name="poletop_radius" value="0.02"/>
   <property name="poletop_length" value="0.555"/>
   <property name="poletop_z_offset" value="0.04"/>
