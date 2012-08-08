@@ -14,7 +14,7 @@
   
   <include filename="$(find kurt_description)/parts/kurtana_rack.urdf.xacro" />
 
-  <property name="kinect_x_offset" value="0.025" />
+  <property name="kinect_x_offset" value="0.018" />
   <property name="kinect_z_offset" value="0.087" />
 
 
