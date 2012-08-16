@@ -70,7 +70,7 @@ class Kurt
       v_encoder_right_(0.0) { }
     ~Kurt();
 
-    void setPWMData(const std::string &speedPwmLeerlaufTable, double feedforward_turn, double ki, double kp);
+    bool setPWMData(const std::string &speedPwmLeerlaufTable, double feedforward_turn, double ki, double kp);
 
     int can_motor(int left_pwm,  char left_dir,  char left_brake,
         int right_pwm, char right_dir, char right_brake);
