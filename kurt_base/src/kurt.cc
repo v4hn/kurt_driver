@@ -23,7 +23,7 @@ Kurt::~Kurt()
   }
 }
 
-void Kurt::setPWMData(const std::string &speedPwmLeerlaufTable, double feedforward_turn, double ki, double kp)
+bool Kurt::setPWMData(const std::string &speedPwmLeerlaufTable, double feedforward_turn, double ki, double kp)
 {
   ki_l = ki_r = ki;
   kp_l = kp_r = kp;
@@ -32,12 +32,14 @@ void Kurt::setPWMData(const std::string &speedPwmLeerlaufTable, double feedforwa
   double *v_pwm_l, *v_pwm_r;
   if (!read_speed_to_pwm_leerlauf_tabelle(speedPwmLeerlaufTable, &nr, &v_pwm_l, &v_pwm_r))
   {
-    return;
+    return false;
   }
   make_pwm_v_tab(nr, v_pwm_l, v_pwm_r, nr_v_, &pwm_v_l_, &pwm_v_r_, &vmax_);
   free(v_pwm_l);
   free(v_pwm_r);
   use_microcontroller_ = false;
+
+  return true;
 }
 
 int Kurt::can_motor(int left_pwm,  char left_dir,  char left_brake,
@@ -339,6 +341,7 @@ bool Kurt::read_speed_to_pwm_leerlauf_tabelle(const std::string &filename, int *
     if(fscanf(fpr_fftable, "%lf %lf %lf %lf %d", &t, &v, &vl, &vr, &pwm) == EOF)
     {
       ROS_ERROR("ERROR reading speedtable.");
+      fclose(fpr_fftable);
       return false;
     }
     (*v_pwm_l)[pwm] = vl;

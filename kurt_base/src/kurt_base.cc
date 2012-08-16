@@ -406,7 +406,8 @@ int main(int argc, char** argv)
     double ki, kp;
     nh_ns.param("ki", ki, 3.4);
     nh_ns.param("kp", kp, 0.4);
-    kurt.setPWMData(speedPwmLeerlaufTable, feedforward_turn, ki, kp);
+    if (!kurt.setPWMData(speedPwmLeerlaufTable, feedforward_turn, ki, kp))
+      return 1;
   }
 
   bool use_rotunit;
