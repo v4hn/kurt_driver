@@ -150,7 +150,7 @@ void Kurt::set_wheel_speed2(double _v_l_soll, double _v_r_soll, double _v_l_ist,
   static double last_v_l_ist = 0.0, last_v_r_ist = 0.0;
   // static int reached = 0;
   static double v_l_list[MAX_V_LIST], v_r_list[MAX_V_LIST];
-  static int vl_index = 0, vr_index = 0;
+  static int vl_index = 3, vr_index = 3;
   int i;
   static double f_v_l_ist, f_v_r_ist;
   // kd_l and kd_r allways 0 (using only pi controller here)
@@ -193,7 +193,7 @@ void Kurt::set_wheel_speed2(double _v_l_soll, double _v_r_soll, double _v_l_ist,
   {
     // filter glaettung werte speichern
     v_r_list[vr_index] = _v_r_ist;
-    f_v_r_ist = (v_r_list[vr_index] + v_r_list[vr_index - 1] + v_r_list[vr_index - 2]) / 3.0;
+    f_v_r_ist = (v_r_list[vr_index] + v_r_list[vr_index - 1] + v_r_list[vr_index - 2] + v_r_list[vr_index - 3]) / 4.0;
     vr_index++; // achtung auf ueberlauf
     if (vr_index >= MAX_V_LIST)
     {
