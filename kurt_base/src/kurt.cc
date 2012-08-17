@@ -149,7 +149,12 @@ void Kurt::set_wheel_speed2(double _v_l_soll, double _v_r_soll, double _v_l_ist,
   // filter fuer gueltige Werte
   static double last_v_l_ist = 0.0, last_v_r_ist = 0.0;
   // static int reached = 0;
-  static double v_l_list[MAX_V_LIST], v_r_list[MAX_V_LIST];
+
+  // These arrays need to be initialized because we read from indices 0, 1, 2
+  // before writing to them. If an array is partially initialized, elements
+  // that are not initialized receive the value 0 of the appropriate type, so
+  // initializing the first value is enough.
+  static double v_l_list[MAX_V_LIST] = {0.0}, v_r_list[MAX_V_LIST] = {0.0};
   static int vl_index = 3, vr_index = 3;
   int i;
   static double f_v_l_ist, f_v_r_ist;
