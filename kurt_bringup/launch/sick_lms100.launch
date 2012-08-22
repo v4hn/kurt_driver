@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="LMS1xx" type="LMS100" name="sicklms100" output="screen">
+    <param name="host" value="192.168.1.100" />
+    <param name="frame_id" value="laser" />
+  </node>
+</launch>
