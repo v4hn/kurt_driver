@@ -129,8 +129,8 @@ void ROSComm::populateCovariance(nav_msgs::Odometry &msg, double v_encoder, doub
 void ROSComm::send_odometry(double z, double x, double theta, double v_encoder, double v_encoder_angular, int wheel_a, int wheel_b, double v_encoder_left, double v_encoder_right)
 {
   nav_msgs::Odometry odom;
-  odom.header.frame_id = "odom_combined";
-  odom.child_frame_id = "base_footprint";
+  odom.header.frame_id = tf::resolve(tf_prefix_, "odom_combined");
+  odom.child_frame_id = tf::resolve(tf_prefix_, "base_footprint");
 
   odom.header.stamp = ros::Time::now();
   odom.pose.pose.position.x = z;
@@ -199,7 +199,7 @@ void ROSComm::send_sonar_leftBack(int ir_left_back)
   sensor_msgs::Range range;
   range.header.stamp = ros::Time::now();
 
-  range.header.frame_id = "ir_left_back";
+  range.header.frame_id = tf::resolve(tf_prefix_, "ir_left_back");
   range.radiation_type = sensor_msgs::Range::INFRARED;
   range.field_of_view = IR_FOV;
   range.min_range = IR_MIN;
@@ -213,7 +213,7 @@ void ROSComm::send_sonar_front_usound_leftFront_left(int ir_right_front, int uso
   sensor_msgs::Range range;
   range.header.stamp = ros::Time::now();
 
-  range.header.frame_id = "ir_right_front";
+  range.header.frame_id = tf::resolve(tf_prefix_, "ir_right_front");
   range.radiation_type = sensor_msgs::Range::INFRARED;
   range.field_of_view = IR_FOV;
   range.min_range = IR_MIN;
@@ -221,7 +221,7 @@ void ROSComm::send_sonar_front_usound_leftFront_left(int ir_right_front, int uso
   range.range = ir_right_front / 100.0;
   range_pub_.publish(range);
 
-  range.header.frame_id = "ultrasound_front";
+  range.header.frame_id = tf::resolve(tf_prefix_, "ultrasound_front");
   range.radiation_type = sensor_msgs::Range::ULTRASOUND;
   range.field_of_view = SONAR_FOV;
   range.min_range = SONAR_MIN;
@@ -229,7 +229,7 @@ void ROSComm::send_sonar_front_usound_leftFront_left(int ir_right_front, int uso
   range.range = usound / 100.0;
   range_pub_.publish(range);
 
-  range.header.frame_id = "ir_left_front";
+  range.header.frame_id = tf::resolve(tf_prefix_, "ir_left_front");
   range.radiation_type = sensor_msgs::Range::INFRARED;
   range.field_of_view = IR_FOV;
   range.min_range = IR_MIN;
@@ -237,7 +237,7 @@ void ROSComm::send_sonar_front_usound_leftFront_left(int ir_right_front, int uso
   range.range = ir_left_front / 100.0;
   range_pub_.publish(range);
 
-  range.header.frame_id = "ir_left";
+  range.header.frame_id = tf::resolve(tf_prefix_, "ir_left");
   range.radiation_type = sensor_msgs::Range::INFRARED;
   range.field_of_view = IR_FOV;
   range.min_range = IR_MIN;
@@ -251,7 +251,7 @@ void ROSComm::send_sonar_back_rightBack_rightFront(int ir_back, int ir_right_bac
   sensor_msgs::Range range;
   range.header.stamp = ros::Time::now();
 
-  range.header.frame_id = "ir_back";
+  range.header.frame_id = tf::resolve(tf_prefix_, "ir_back");
   range.radiation_type = sensor_msgs::Range::INFRARED;
   range.field_of_view = IR_FOV;
   range.min_range = IR_MIN;
@@ -259,7 +259,7 @@ void ROSComm::send_sonar_back_rightBack_rightFront(int ir_back, int ir_right_bac
   range.range = ir_back / 100.0;
   range_pub_.publish(range);
 
-  range.header.frame_id = "ir_right_back";
+  range.header.frame_id = tf::resolve(tf_prefix_, "ir_right_back");
   range.radiation_type = sensor_msgs::Range::INFRARED;
   range.field_of_view = IR_FOV;
   range.min_range = IR_MIN;
@@ -267,7 +267,7 @@ void ROSComm::send_sonar_back_rightBack_rightFront(int ir_back, int ir_right_bac
   range.range = ir_right_back / 100.0;
   range_pub_.publish(range);
 
-  range.header.frame_id = "ir_right";
+  range.header.frame_id = tf::resolve(tf_prefix_, "ir_right");
   range.radiation_type = sensor_msgs::Range::INFRARED;
   range.field_of_view = IR_FOV;
   range.min_range = IR_MIN;
@@ -287,7 +287,7 @@ void ROSComm::send_gyro(double theta, double sigma)
 
   // this is intentionally base_link (the location of the imu) and not base_footprint,
   // but because they are connected by a fixed link, it doesn't matter
-  imu.header.frame_id = "base_link";
+  imu.header.frame_id = tf::resolve(tf_prefix_, "base_link");
   imu.header.stamp = ros::Time::now();
 
   imu.angular_velocity_covariance[0] = -1; // no data avilable, see Imu.msg
@@ -420,12 +420,9 @@ int main(int argc, char** argv)
 
   bool publish_tf;
   nh_ns.param("publish_tf", publish_tf, false);
-  if (publish_tf)
-  {
-    std::string tf_prefix;
-    tf_prefix = tf::getPrefixParam(nh_ns);
-    roscomm.setTFPrefix(tf_prefix);
-  }
+  std::string tf_prefix;
+  tf_prefix = tf::getPrefixParam(nh_ns);
+  roscomm.setTFPrefix(tf_prefix);
 
   ROSCall roscall(kurt, axis_length);
 
