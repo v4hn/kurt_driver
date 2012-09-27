@@ -70,7 +70,6 @@ class ROSComm : public Comm
 
 void ROSComm::setTFPrefix(const std::string &tf_prefix)
 {
-  publish_tf_ = true;
   tf_prefix_ = tf_prefix;
 }
 
