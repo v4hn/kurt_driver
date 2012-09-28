@@ -313,7 +313,9 @@ void Kurt::set_wheel_speed(double _v_l_soll, double _v_r_soll, double _AntiWindu
 {
   if (use_microcontroller_)
   {
-    set_wheel_speed2_mc(_v_l_soll, _v_r_soll, 0, _AntiWindup);
+    //Disable AntiWindup for now as the Kurt micro controller crashes when
+    //going from zero to full speed with it activated
+    set_wheel_speed2_mc(_v_l_soll, _v_r_soll, 0, 1.0);
   }
   else
   {
