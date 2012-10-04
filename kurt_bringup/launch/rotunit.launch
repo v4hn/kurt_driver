@@ -3,7 +3,7 @@
   <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/parts/rotunit.urdf.xacro'" />
 
   <node pkg="tf" type="static_transform_publisher" name="rot_to_base"
-    args="0 0 0 0 0 0 /base_link /laser_rot_mount_link 10" />
+    args="0 0 0 0 0 0 /base_link /rotunit_box_link 10" />
 
   <node pkg="tf" type="static_transform_publisher" name="base_to_odom"
     args="0 0 0 0 0 0 /odom_combined /base_link 10" />
