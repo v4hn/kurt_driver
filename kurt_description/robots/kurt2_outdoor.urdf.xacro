@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<robot
+  xmlns:xacro="http://ros.org/wiki/xacro"
+  name="kurt2">
+
+  <include filename="$(find kurt_description)/bases/kurt_outdoor.urdf.xacro" />
+  <include filename="$(find kurt_description)/tops/kurt2_top.urdf.xacro" />
+</robot>
