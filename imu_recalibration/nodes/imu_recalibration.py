@@ -23,10 +23,10 @@ class ImuRecalibration:
 
     # drifts larger than this value are ignored (rad/s)
     # (the maximum drift actually measured is 2pi in 120 seconds)
-    MAX_DELTA = 2.0 * pi / 50.0
+    MAX_DELTA = 2.0 * pi / 120.0
 
     # the robot is considered to be moving if the angular velocity is larger than this (rad/s)
-    MAX_ANGULAR_VEL = 2.0 * pi / 360.0
+    MAX_ANGULAR_VEL = 2.0 * pi / 3600.0
 
     def __init__(self):
         rospy.init_node('imu_recalibration')
@@ -68,7 +68,7 @@ class ImuRecalibration:
                 rospy.loginfo("New IMU delta: %f" % self.delta)
             else:
                 # this can happen if the base was switched off and on again
-                rospy.logwarn("IMU delta to large, ignoring: %f" % self.delta_new)
+                rospy.logwarn("IMU delta too large, ignoring: %f" % self.delta_new)
 
             self.calibration_counter = -1
 
