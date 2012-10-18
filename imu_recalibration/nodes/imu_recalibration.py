@@ -38,7 +38,7 @@ class ImuRecalibration:
         self.delta_new = 0.0
         self.yaw_old = 0.0
         self.calibration_counter = -1
-        self.tmp = open('blub', 'w')
+        #self.debug_file = open('/tmp/imu_recalibration.txt', 'w')
         rospy.loginfo('imu_recalibration node initialized.')
 
     @classmethod
@@ -84,7 +84,7 @@ class ImuRecalibration:
         msg_out.orientation.z = q[2]
         msg_out.orientation.w = q[3]
 
-        self.tmp.write("%s %s\n" % (yaw, yaw_new))
+        #self.debug_file.write("%s %s\n" % (yaw, yaw_new))
         self.pub.publish(msg_out)
 
     def odom_callback(self, msg):
