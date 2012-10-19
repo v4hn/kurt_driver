@@ -59,12 +59,12 @@ class ImuRecalibration:
             self.delta_new = 0.0
         else:
             # inside calibration interval --> accumulate
-            self.delta_new += self.normalize(yaw - self.yaw_old)
+            self.delta_new = self.normalize(self.delta_new + yaw - self.yaw_old)
 
         if self.calibration_counter == ImuRecalibration.NUM_SAMPLES:
             # end of calibration interval
             if abs(self.delta_new) < ImuRecalibration.MAX_DELTA:
-                self.delta = self.normalize(self.delta_new / ImuRecalibration.NUM_SAMPLES)
+                self.delta = self.normalize(self.delta_new) / ImuRecalibration.NUM_SAMPLES
                 rospy.loginfo("New IMU delta: %f" % self.delta)
             else:
                 # this can happen if the base was switched off and on again
@@ -84,7 +84,7 @@ class ImuRecalibration:
         msg_out.orientation.z = q[2]
         msg_out.orientation.w = q[3]
 
-        #self.debug_file.write("%s %s\n" % (yaw, yaw_new))
+        #self.debug_file.write("%s %s %s %s %s %s\n" % (yaw, yaw_new, self.error, self.delta, self.delta_new, self.calibration_counter))
         self.pub.publish(msg_out)
 
     def odom_callback(self, msg):
