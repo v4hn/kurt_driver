@@ -88,7 +88,7 @@ class ImuRecalibration:
         self.pub.publish(msg_out)
 
     def odom_callback(self, msg):
-        if msg.twist.twist.angular.z > ImuRecalibration.MAX_ANGULAR_VEL:
+        if abs(msg.twist.twist.angular.z) > ImuRecalibration.MAX_ANGULAR_VEL:
             rospy.loginfo("Resetting imu_recalibration (robot is moving)")
             self.calibration_counter = -1
 
