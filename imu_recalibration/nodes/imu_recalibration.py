@@ -23,7 +23,7 @@ class ImuRecalibration:
 
     # drifts larger than this value are ignored (rad/s)
     # (the maximum drift actually measured is 2pi in 120 seconds)
-    MAX_DELTA = 2.0 * pi / 120.0
+    MAX_DELTA = 2.0 * pi / 120.0 / NUM_SAMPLES
 
     # the robot is considered to be moving if the angular velocity is larger than this (rad/s)
     MAX_ANGULAR_VEL = 2.0 * pi / 3600.0
@@ -59,12 +59,13 @@ class ImuRecalibration:
             self.delta_new = 0.0
         else:
             # inside calibration interval --> accumulate
-            self.delta_new = self.normalize(self.delta_new + yaw - self.yaw_old)
+            self.delta_new += self.normalize(yaw - self.yaw_old)
 
         if self.calibration_counter == ImuRecalibration.NUM_SAMPLES:
+            self.delta_new /= ImuRecalibration.NUM_SAMPLES
             # end of calibration interval
             if abs(self.delta_new) < ImuRecalibration.MAX_DELTA:
-                self.delta = self.normalize(self.delta_new) / ImuRecalibration.NUM_SAMPLES
+                self.delta = self.delta_new
                 rospy.loginfo("New IMU delta: %f" % self.delta)
             else:
                 # this can happen if the base was switched off and on again
