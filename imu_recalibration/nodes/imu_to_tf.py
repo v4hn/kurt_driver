@@ -15,24 +15,24 @@ roslib.load_manifest('imu_recalibration')
 import rospy
 
 from sensor_msgs.msg import Imu
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped, Quaternion
 import tf
 
 broadcaster = None
 
 def callback(msg_in):
-    msg_out = PoseStamped()
+    (r, p, y) = tf.transformations.euler_from_quaternion(
+        [msg_in.orientation.x,
+         msg_in.orientation.y,
+         msg_in.orientation.z,
+         msg_in.orientation.w])
 
-    msg_out.header = msg_in.header
-    msg_out.pose.position.x = 0
-    msg_out.pose.position.y = 0
-    msg_out.pose.position.z = 0
+    # mirror orientations
+    q = tf.transformations.quaternion_from_euler(-r, -p, -y)    
+    rotation = (q[0], q[1], q[2], q[3])
 
-    msg_out.pose.orientation = msg_in.orientation
-    rotation = (msg_in.orientation.x, msg_in.orientation.y, msg_in.orientation.z, msg_in.orientation.w)
-
-    #broadcaster.sendTransform((0, 0, 0), rotation, msg_in.header.stamp, msg_in.header.frame_id, "/imu_frame")
-    broadcaster.sendTransform((0, 0, 0), rotation, rospy.Time.now(), msg_in.header.frame_id, "/imu_frame")
+    broadcaster.sendTransform((0, 0, 0), rotation, msg_in.header.stamp, "/imu_frame", msg_in.header.frame_id)
+    #broadcaster.sendTransform((0, 0, 0), rotation, rospy.Time.now(), "/imu_frame", msg_in.header.frame_id)
 
 def main():
     global broadcaster
