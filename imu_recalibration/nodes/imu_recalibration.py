@@ -30,9 +30,9 @@ class ImuRecalibration:
 
     def __init__(self):
         rospy.init_node('imu_recalibration')
-        rospy.Subscriber("/imu", Imu, self.imu_callback)
-        rospy.Subscriber("/odom", Odometry, self.odom_callback)
-        self.pub = rospy.Publisher('/imu_recalibrated', Imu)
+        rospy.Subscriber("imu", Imu, self.imu_callback)
+        rospy.Subscriber("odom", Odometry, self.odom_callback)
+        self.pub = rospy.Publisher('imu_recalibrated', Imu)
         self.error = 0.0
         self.delta = 0.0
         self.delta_new = 0.0
