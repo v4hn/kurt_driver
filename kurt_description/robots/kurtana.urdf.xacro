@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot
   xmlns:xacro="http://ros.org/wiki/xacro"
-  name="kurt360">
+  name="kurtana">
   
   <xacro:property name="top_y_offset" value="0.00" />
   <xacro:property name="base_z_offset" value="0.012" /> <!-- distance from base_link to top of cover surface -->
