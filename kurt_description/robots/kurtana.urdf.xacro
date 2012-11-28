@@ -4,7 +4,7 @@
   name="kurtana">
   
   <xacro:property name="top_y_offset" value="0.00" />
-  <xacro:property name="base_z_offset" value="0.012" /> <!-- distance from base_link to top of cover surface -->
+  <xacro:property name="base_z_offset" value="0.00" /> <!-- distance from base_link to top of cover surface -->
 
   <include filename="$(find kurt_description)/bases/kurt_outdoor.urdf.xacro" />
   <include filename="$(find kurt_description)/tops/kurtana_top.urdf.xacro" />
