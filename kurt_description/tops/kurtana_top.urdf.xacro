@@ -52,6 +52,13 @@
 
   <include filename="$(find katana_description)/urdf/katana_450_6m90a_with_controlbox.urdf.xacro" />
 
+  <link name="katana_pattern"></link>
+  <joint name="katana_pattern_joint" type="fixed">
+    <parent link="katana_motor4_lift_link"/>
+    <child  link="katana_pattern" />
+    <origin xyz=".075 -.035 0.00" rpy="1.571 -1.571 0.151"/>
+  </joint>
+
   <joint name="kurtana_baseplate_controlbox_joint" type="fixed">
     <parent link="kurtana_baseplate_link" />
     <child link="katana_internal_controlbox_link" />
