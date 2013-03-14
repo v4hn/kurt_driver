@@ -8,16 +8,10 @@
     <param name="high_fidelity" value="true"/>
   </node>
 
-  <!-- convert between PointCloud and PointCloud2 types (necessary for Diamondback) -->
-  <node pkg="point_cloud_converter" type="point_cloud_converter" name="cloud_filtered_to_cloud_filtered2" output="screen">
-    <remap from="points_in" to="cloud_filtered" />
-	 <remap from="points2_out" to="cloud_filtered2" />
- </node>
-
   <!-- cloud_filtered2 (PointCloud2) to cloud_self_filtered2 (PointCloud2) -->
   <node pkg="robot_self_filter" type="self_filter" name="self_filter" output="screen">
-	  <remap from="cloud_in" to="cloud_filtered2" />
-	  <remap from="cloud_out" to="cloud_self_filtered2" />
+	  <remap from="cloud_in" to="cloud_filtered" />
+	  <remap from="cloud_out" to="cloud_self_filtered" />
 
     <!-- The frame of the sensor used to obtain the data to be
        filtered; This parameter is optional. If it is not specified,
@@ -27,14 +21,8 @@
     <rosparam command="load" file="$(find kurt_bringup)/config/kurt360_self_filter.yaml" />
   </node>
   
-  <!-- convert between PointCloud2 and PointCloud types (necessary for Diamondback) -->
-  <node pkg="point_cloud_converter" type="point_cloud_converter" name="cloud_self_filtered2_to_cloud_self_filtered" output="screen">
-    <remap from="points2_in" to="cloud_self_filtered2" />
-	 <remap from="points_out" to="cloud_self_filtered" />
- </node>
-
  <!-- cloud_self_filtered (PointCloud) to nothing (provides assemble_scans service) -->
-  <node pkg="laser_assembler" type="point_cloud_assembler" name="point_cloud_assembler" output="screen">
+  <node pkg="laser_assembler" type="point_cloud2_assembler" name="point_cloud_assembler" output="screen">
     <remap from="cloud" to="cloud_self_filtered"/>
     <param name="max_clouds" value="1000" />
     <param name="fixed_frame" value="/odom_combined" />
