@@ -58,7 +58,7 @@
   </gazebo>
 
   <gazebo>
-    <controller:gazebo_ros_kurt name="kurt_controller" plugin="libgazebo_ros_kurt.so">
+    <plugin name="kurt_controller" filename="libgazebo_ros_kurt.so">
       <alwaysOn>true</alwaysOn>
       <cmd_vel_topic_name>cmd_vel</cmd_vel_topic_name>
       <odom_topic_name>odom</odom_topic_name>
@@ -75,12 +75,12 @@
       <torque>4.0</torque>
       <max_velocity>1.3</max_velocity>
       <updateRate>40.0</updateRate>
-    </controller:gazebo_ros_kurt>
+    </plugin>
   </gazebo>
 
   <!-- publish ground truth for pose of base_footprint -->
   <gazebo>
-    <controller:gazebo_ros_p3d name="base_footprint_controller" plugin="libgazebo_ros_p3d.so">
+    <plugin name="base_footprint_controller" filename="libgazebo_ros_p3d.so">
       <alwaysOn>true</alwaysOn>
       <updateRate>30.0</updateRate>
       <bodyName>base_footprint</bodyName>
@@ -88,7 +88,7 @@
       <gaussianNoise>0.0</gaussianNoise>
       <frameName>map</frameName>
       <interface:position name="base_footprint_p3d_position_iface" />
-    </controller:gazebo_ros_p3d>
+    </plugin>
   </gazebo>
 
   <!-- inertial measurement unit for gazebo -->
