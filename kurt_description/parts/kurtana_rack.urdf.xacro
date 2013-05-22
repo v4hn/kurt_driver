@@ -204,26 +204,26 @@
   <xacro:kurtana_pole_transmission name="kurtana_pitch" />
   
   <gazebo reference="kurtana_rackplate_link">
-    <material value="PR2/Grey1" />
+    <material value="PR2/Grey" />
   </gazebo>
   
   <gazebo reference="kurtana_baseplate_link">
-    <material value="PR2/Grey1" />
+    <material value="PR2/Grey" />
   </gazebo>
   
   <gazebo reference="kurtana_pole_link">
-    <material value="PR2/Grey1" />
+    <material value="PR2/Grey" />
   </gazebo>
   
   <gazebo reference="kurtana_innerpole_stretch_link">
-    <material value="PR2/Grey1" />
+    <material value="PR2/Grey" />
   </gazebo>
   
   <gazebo reference="kurtana_poletop_roll_link">
-    <material value="PR2/Grey1" />
+    <material value="PR2/Grey" />
   </gazebo>
   
   <gazebo reference="kurtana_pitchpole_link">
-    <material value="PR2/Grey1" />
+    <material value="PR2/Grey" />
   </gazebo>
 </robot>
