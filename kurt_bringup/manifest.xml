@@ -10,7 +10,7 @@
   <url>http://ros.org/wiki/kurt_bringup</url>
   <depend package="kurt_description"/>
   <depend package="kurt_base"/>
-  <depend package="kurt_teleop"/>
+  <depend package="uos_diffdrive_teleop"/>
   <depend package="robot_state_publisher"/>
 
   <depend package="sicktoolbox_wrapper"/>
