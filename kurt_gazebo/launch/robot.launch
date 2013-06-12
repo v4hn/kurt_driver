@@ -7,7 +7,7 @@
   </node>
 
   <!-- The odometry estimator -->
-  <include file="$(find kurt_base)/launch/ekf.launch" />
+  <include file="$(find kurt_bringup)/launch/ekf.launch" />
 
   <!-- fake localization (needed for ground truth pose publisher) -->
   <!-- node pkg="tf" type="static_transform_publisher" name="map_to_odom_combined"
