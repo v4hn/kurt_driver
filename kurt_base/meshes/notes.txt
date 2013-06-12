@@ -1,0 +1,20 @@
+== kurt_base_outdoor.stl ==
+- based on kurt/Blender-Dateien/zwischenspeicher/Outdoor13.blend
+- scaled down by factor 200
+
+== kurt_base_indoor.stl ==
+- based on kurt/Blender-Dateien/zwischenspeicher/complete4.blend
+- scaled down by factor 200
+
+== kurt_wheel_outdoor.stl ==
+- based on kurt/Blender-Dateien/fertige/TireO7.blend
+- scaled down by factor 100
+- scaled x (width) up again by factor 2
+- rotated around y, then x
+- scaled up by 10% again
+
+== kurt_wheel_indoor.dae ==
+- based on kurt/Blender-Dateien/fertige/simple_tire5.blend
+- scaled down by factor 200
+- scaled x (width) up again by factor 1.5
+- scaled up by 25% again
