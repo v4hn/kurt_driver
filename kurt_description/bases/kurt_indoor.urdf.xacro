@@ -58,7 +58,7 @@
   </gazebo>
 
   <gazebo>
-    <plugin name="kurt_controller" filename="libgazebo_ros_kurt.so">
+    <plugin name="kurt_controller" filename="libgazebo_ros_diffdrive_uos.so">
       <alwaysOn>true</alwaysOn>
       <cmd_vel_topic_name>cmd_vel</cmd_vel_topic_name>
       <odom_topic_name>odom</odom_topic_name>
