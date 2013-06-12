@@ -3,5 +3,4 @@
   <node pkg="kurt_base" type="kurt_base" name="kurt_base" output="screen">
     <param name="ticks_per_turn_of_wheel" value="5120" />
   </node>
-  <include file="$(find kurt_base)/launch/ekf.launch" />
 </launch>

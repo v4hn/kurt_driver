@@ -5,6 +5,4 @@
     <param name="axis_length" value="0.39" />
     <param name="turning_adaptation" value="0.64" />
   </node>
-
-  <include file="$(find kurt_base)/launch/ekf.launch" />
 </launch>
