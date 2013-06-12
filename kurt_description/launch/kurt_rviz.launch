@@ -2,8 +2,8 @@
 <launch>
   <include file="$(find kurt_description)/launch/upload_kurt360.launch" />
   <!-- 
-    <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/bases/kurt_indoor.urdf.xacro'" />
-    <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/bases/kurt_outdoor.urdf.xacro'" />
+    <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_base)/urdf/kurt_indoor.urdf.xacro'" />
+    <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_base)/urdf/kurt_outdoor.urdf.xacro'" />
     <include file="$(find kurt_description)/launch/upload_kurt2_indoor.launch" />
   -->
 

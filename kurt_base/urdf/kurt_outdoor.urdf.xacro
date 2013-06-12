@@ -3,19 +3,19 @@
   xmlns:interface="http://playerstage.sourceforge.net/gazebo/xmlschema/#interface"
   xmlns:sensor="http://playerstage.sourceforge.net/gazebo/xmlschema/#sensor"
   xmlns:xacro="http://ros.org/wiki/xacro"
-  name="kurt_indoor_base">
+  name="kurt_outdoor_base">
 
   <include filename="$(find kurt_description)/common.xacro" />
   <include filename="$(find kurt_description)/parts/infrared_sonar.urdf.xacro" />
   <include filename="$(find kurt_description)/parts/imu.gazebo.urdf.xacro" />
 
-  <xacro:property name="wheel_width" value="0.035" />
-  <xacro:property name="wheel_radius" value="0.060319723" /> <!-- corresponds to wheel_perimeter=0.379 -->
+  <xacro:property name="wheel_width" value="0.046" />
+  <xacro:property name="wheel_radius" value="0.08244" /> <!-- corresponds to wheel_perimeter=0.518 -->
   <xacro:property name="axis_length" value="0.28" />
-  <xacro:property name="middle_axis_length" value="0.28" />
+  <xacro:property name="middle_axis_length" value="0.39" />
   <xacro:property name="wheel_x_offset" value="0.14" />
   <xacro:property name="wheel_z_offset" value="-0.107" />
-  <xacro:property name="turning_adaptation" value="0.69" />
+  <xacro:property name="turning_adaptation" value="0.64" />
   <xacro:property name="mass" value="15.6" />
   <xacro:property name="imu_stdev" value="0.00017" />
 
@@ -23,17 +23,17 @@
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://kurt_description/meshes/kurt_base_indoor.stl" />
+        <mesh filename="package://kurt_base/meshes/kurt_base_outdoor.stl" />
       </geometry>
 
-      <material name="black" >
-        <color rgba="0.1 0.1 0.1 1" />
+      <material name="red" >
+        <color rgba="1 0 0 1" />
       </material>
     </visual>
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
-        <mesh filename="package://kurt_description/meshes/kurt_base_indoor.stl" />
+        <mesh filename="package://kurt_base/meshes/kurt_base_outdoor.stl" />
       </geometry>
     </collision>
     <!-- <visual>
@@ -54,7 +54,7 @@
   </link>
 
   <gazebo reference="base_link">
-    <material value="Gazebo/Black" />
+    <material value="Gazebo/Red" />
   </gazebo>
 
   <gazebo>
@@ -73,7 +73,7 @@
       <wheel_diameter>${2*wheel_radius}</wheel_diameter>
       <turning_adaptation>${turning_adaptation}</turning_adaptation>
       <torque>4.0</torque>
-      <max_velocity>0.9</max_velocity>
+      <max_velocity>1.3</max_velocity>
       <updateRate>40.0</updateRate>
     </plugin>
   </gazebo>
@@ -94,65 +94,48 @@
   <!-- inertial measurement unit for gazebo -->
   <xacro:imu_gazebo link="base_link" imu_topic="imu" update_rate="100.0" stdev="${imu_stdev}" />
 
-  <xacro:macro name="kurt_wheel" params="name xyz rotate_visual">
-    <!-- rotate_visual: 0 for right side, 1 for left side -->
+  <xacro:macro name="kurt_wheel" params="name xyz">
     <link name="${name}_wheel_link">
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 ${rotate_visual * M_PI}" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <mesh filename="package://kurt_description/meshes/kurt_wheel_indoor.dae" />
+          <mesh filename="package://kurt_base/meshes/kurt_wheel_outdoor.stl" />
         </geometry>
 
-        <material name="blackish"><color rgba="0.2 0.2 0.2 1"/></material>
+        <material name="blackish"><color rgba="0.1 0.1 0.1 1"/></material>
       </visual>
       <collision>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
-          <!-- using STL for collision to fix http://answers.ros.org/question/2368/gazebo-model-wheels-slip-after-upgrade-to-electric -->
-          <mesh filename="package://kurt_description/meshes/kurt_wheel_indoor.stl" />
+          <mesh filename="package://kurt_base/meshes/kurt_wheel_outdoor.stl" />
           <!-- <cylinder length="${wheel_width}" radius="${wheel_radius}" /> -->
         </geometry>
       </collision>
       <inertial>
-        <mass value="0.075" />
+        <mass value="0.15" />
         <origin xyz="0 0 0" />
-        <inertia ixx="0.000066031" ixy="0.0" ixz="0.0"
-          iyy="0.000129786" iyz="0.0"
-          izz="0.000066031" />
+        <inertia ixx="0.000177810" ixy="0.0" ixz="0.0"
+          iyy="0.000332643" iyz="0.0"
+          izz="0.000177810" />
       </inertial>
     </link>
-
-    <!-- friction parameters -->
-    <gazebo reference="${name}_wheel_link">
-      <!-- PR2: -->
-      <!-- 
-        <mu1 value="100.0" />
-        <mu2 value="100.0" />
-        <kp  value="1000000.0" />
-        <kd  value="1.0" /> -->
-
-      <!-- Turtlebot: -->
-      <mu1 value="10"/>
-      <mu2 value="10"/>
-      <kp value="100000000.0"/>
-      <kd value="10000.0"/>
-      <fdir1 value="1 0 0"/>  <!-- see http://answers.ros.org/question/607/rotation-error-in-gazebo-simulation -->
-    </gazebo>
-
     <joint name="${name}_wheel_joint" type="continuous">
       <origin xyz="${xyz}" rpy="0 0 0" />
       <parent link="base_link"/>
       <child link="${name}_wheel_link"/>
       <axis xyz="0 1 0"/>
     </joint>
+    <gazebo reference="kurt_wheel_${name}">
+      <material value="Gazebo/Grey" />
+    </gazebo>
   </xacro:macro>
 
-  <xacro:kurt_wheel name="left_front" xyz="${wheel_x_offset} ${axis_length/2} ${wheel_z_offset}" rotate_visual="1" />
-  <xacro:kurt_wheel name="left_middle" xyz="0 ${middle_axis_length/2} ${wheel_z_offset}" rotate_visual="1" />
-  <xacro:kurt_wheel name="left_rear" xyz="${-wheel_x_offset} ${axis_length/2} ${wheel_z_offset}" rotate_visual="1" />
-  <xacro:kurt_wheel name="right_front" xyz="${wheel_x_offset} ${-axis_length/2} ${wheel_z_offset}" rotate_visual="0" />
-  <xacro:kurt_wheel name="right_middle" xyz="0 ${-middle_axis_length/2} ${wheel_z_offset}" rotate_visual="0" />
-  <xacro:kurt_wheel name="right_rear" xyz="${-wheel_x_offset} ${-axis_length/2} ${wheel_z_offset}" rotate_visual="0" />
+  <xacro:kurt_wheel name="left_front" xyz="${wheel_x_offset} ${axis_length/2} ${wheel_z_offset}" />
+  <xacro:kurt_wheel name="left_middle" xyz="0 ${middle_axis_length/2} ${wheel_z_offset}" />
+  <xacro:kurt_wheel name="left_rear" xyz="${-wheel_x_offset} ${axis_length/2} ${wheel_z_offset}" />
+  <xacro:kurt_wheel name="right_front" xyz="${wheel_x_offset} ${-axis_length/2} ${wheel_z_offset}" />
+  <xacro:kurt_wheel name="right_middle" xyz="0 ${-middle_axis_length/2} ${wheel_z_offset}" />
+  <xacro:kurt_wheel name="right_rear" xyz="${-wheel_x_offset} ${-axis_length/2} ${wheel_z_offset}" />
 
   <!-- base_footprint is a fictitious link(frame) that is on the ground right below base_link origin,
        navigation stack dedpends on this frame -->
