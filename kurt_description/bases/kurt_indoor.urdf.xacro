@@ -58,7 +58,7 @@
   </gazebo>
 
   <gazebo>
-    <controller:gazebo_ros_kurt name="kurt_controller" plugin="libgazebo_ros_kurt.so">
+    <controller:gazebo_ros_diffdrive_uos name="kurt_controller" plugin="libgazebo_ros_diffdrive_uos.so">
       <alwaysOn>true</alwaysOn>
       <cmd_vel_topic_name>cmd_vel</cmd_vel_topic_name>
       <odom_topic_name>odom</odom_topic_name>
@@ -75,7 +75,7 @@
       <torque>4.0</torque>
       <max_velocity>0.9</max_velocity>
       <updateRate>40.0</updateRate>
-    </controller:gazebo_ros_kurt>
+    </controller:gazebo_ros_diffdrive_uos>
   </gazebo>
 
   <!-- publish ground truth for pose of base_footprint -->
