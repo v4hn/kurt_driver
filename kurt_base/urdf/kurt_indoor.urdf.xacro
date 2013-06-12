@@ -6,7 +6,7 @@
   name="kurt_indoor_base">
 
   <include filename="$(find kurt_description)/common.xacro" />
-  <include filename="$(find kurt_description)/parts/infrared_sonar.urdf.xacro" />
+  <include filename="$(find kurt_base)/urdf/infrared_sonar.urdf.xacro" />
   <include filename="$(find kurt_description)/parts/imu.gazebo.urdf.xacro" />
 
   <xacro:property name="wheel_width" value="0.035" />
