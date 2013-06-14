@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_description)/parts/rotunit.urdf.xacro'" />
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find kurt_base)/urdf/rotunit.urdf.xacro'" />
 
   <node pkg="tf" type="static_transform_publisher" name="rot_to_base"
     args="0 0 0 0 0 0 /base_link /rotunit_box_link 10" />
