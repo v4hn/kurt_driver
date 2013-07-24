@@ -1,6 +1,7 @@
 <!-- Phidgets IMU launch file -->
 
 <launch>
+  <arg name="tf_prefix" default="" />
 
   #### Nodelet manager ######################################################
 
@@ -17,7 +18,7 @@
     <param name="period" value="4"/>
 
     # The name of the frame attached to the published messages (default: imu)
-    <param name="frame_id" value="imu" />
+    <param name="frame_id" value="$(arg tf_prefix)/imu" />
 
   </node>
 
@@ -31,7 +32,7 @@
     <param name="use_mag" value="false"/>
 
     # The fixed frame in which the orientation is expressed (default: odom).
-    <param name="fixed_frame" value="imu" />
+    <param name="fixed_frame" value="$(arg tf_prefix)/imu" />
 
     <param name="publish_tf" value="false" />
   </node>
